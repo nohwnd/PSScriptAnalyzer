@@ -1,13 +1,14 @@
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ruleName = 'PSDSCUseIdenticalMandatoryParametersForDSC'
-$resourceBasepath = "$directory\DSCResourceModule\DSCResources"
-$badResourceFilepath = [System.IO.Path]::Combine(
-    $resourceBasepath,
-    'MSFT_WaitForAnyNoIdenticalMandatoryParameter',
-    'MSFT_WaitForAnyNoIdenticalMandatoryParameter.psm1');
-$goodResourceFilepath = [System.IO.Path]::Combine($resourceBasepath,'MSFT_WaitForAny','MSFT_WaitForAny.psm1');
+Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $ruleName = 'PSDSCUseIdenticalMandatoryParametersForDSC'
+    $resourceBasepath = "$directory\DSCResourceModule\DSCResources"
+    $badResourceFilepath = [System.IO.Path]::Combine(
+        $resourceBasepath,
+        'MSFT_WaitForAnyNoIdenticalMandatoryParameter',
+        'MSFT_WaitForAnyNoIdenticalMandatoryParameter.psm1');
+    $goodResourceFilepath = [System.IO.Path]::Combine($resourceBasepath,'MSFT_WaitForAny','MSFT_WaitForAny.psm1');
 
-
+}
 Describe "UseIdenticalMandatoryParametersForDSC" {
     Context "When a mandatory parameters are not present" {
         BeforeAll {

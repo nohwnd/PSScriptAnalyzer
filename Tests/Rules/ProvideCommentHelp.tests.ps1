@@ -1,47 +1,49 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
+﻿Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
 
-Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+    Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-$violationMessage = "The cmdlet 'Comment' does not have a help comment."
-$violationName = "PSProvideCommentHelp"
-$ruleSettings = @{
-    Enable = $true
-    ExportedOnly = $false
-    BlockComment = $true
-    Placement = "before"
-    VSCodeSnippetCorrection = $false
-}
+    $violationMessage = "The cmdlet 'Comment' does not have a help comment."
+    $violationName = "PSProvideCommentHelp"
+    $ruleSettings = @{
+        Enable = $true
+        ExportedOnly = $false
+        BlockComment = $true
+        Placement = "before"
+        VSCodeSnippetCorrection = $false
+    }
 
-$settings = @{
-    IncludeRules = @("PSProvideCommentHelp")
-    Rules = @{ PSProvideCommentHelp = $ruleSettings }
-}
+    $settings = @{
+        IncludeRules = @("PSProvideCommentHelp")
+        Rules = @{ PSProvideCommentHelp = $ruleSettings }
+    }
 
-$violations = Invoke-ScriptAnalyzer $directory\BadCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $violations = Invoke-ScriptAnalyzer $directory\BadCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
 
-if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
-    $dscViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $directory\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1 | Where-Object {$_.RuleName -eq $violationName}
-}
+    if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
+        $dscViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $directory\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1 | Where-Object {$_.RuleName -eq $violationName}
+    }
 
-$noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
 
-function Test-Correction {
-    param($scriptDef, $expectedCorrection, $settings)
+    function Test-Correction {
+        param($scriptDef, $expectedCorrection, $settings)
 
-    $violations = Invoke-ScriptAnalyzer -ScriptDefinition $scriptDef -Settings $settings
-    $violations.Count | Should -Be 1
+        $violations = Invoke-ScriptAnalyzer -ScriptDefinition $scriptDef -Settings $settings
+        $violations.Count | Should -Be 1
 
-    # We split the lines because appveyor checks out files with "\n" endings
-    # on windows, which results in inconsistent line endings between corrections
-    # and result.
-    $resultLines = $violations[0].SuggestedCorrections[0].Text -split "\r?\n"
-    $expectedLines = $expectedCorrection -split "\r?\n"
-    $resultLines.Count | Should -Be $expectedLines.Count
-    for ($i = 0; $i -lt $resultLines.Count; $i++) {
-        $resultLine = $resultLines[$i]
-        $expectedLine = $expectedLines[$i]
-        $resultLine | Should -Be $expectedLine
+        # We split the lines because appveyor checks out files with "\n" endings
+        # on windows, which results in inconsistent line endings between corrections
+        # and result.
+        $resultLines = $violations[0].SuggestedCorrections[0].Text -split "\r?\n"
+        $expectedLines = $expectedCorrection -split "\r?\n"
+        $resultLines.Count | Should -Be $expectedLines.Count
+        for ($i = 0; $i -lt $resultLines.Count; $i++) {
+            $resultLine = $resultLines[$i]
+            $expectedLine = $expectedLines[$i]
+            $resultLine | Should -Be $expectedLine
+        }
     }
 }
 
@@ -67,6 +69,7 @@ function foo {
 
             Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Get-Count | Should -Be 1
         }
+
         It "should return a help snippet correction with 0 parameters" {
             $def = @'
 function foo {

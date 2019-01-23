@@ -1,12 +1,17 @@
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
-Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
-$sa = Get-Command Get-ScriptAnalyzerRule
+Add-Dependency {
+    Write-host "- $($MyInvocation.MyCommand.Path) -"
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
+    $p = (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
+    Write-Host "- $p -"
+    Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
+    $sa = Get-Command Get-ScriptAnalyzerRule
 
-$singularNouns = "PSUseSingularNouns" # this rule does not exist for coreclr version
-$approvedVerbs = "PSUseApprovedVerbs"
-$cmdletAliases = "PSAvoidUsingCmdletAliases"
-$dscIdentical = "PSDSCUseIdenticalParametersForDSC"
+    $singularNouns = "PSUseSingularNouns" # this rule does not exist for coreclr version
+    $approvedVerbs = "PSUseApprovedVerbs"
+    $cmdletAliases = "PSAvoidUsingCmdletAliases"
+    $dscIdentical = "PSDSCUseIdenticalParametersForDSC"
+}
 
 Describe "Test available parameters" {
     $params = $sa.Parameters
@@ -69,7 +74,7 @@ Describe "Test Name parameters" {
                 # shipped because it uses APIs that are not present
                 # in dotnet core.
 
-                $expectedNumRules--                
+                $expectedNumRules--
             }
 			$defaultRules.Count | Should -Be $expectedNumRules
 		}

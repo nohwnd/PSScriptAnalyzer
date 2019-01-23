@@ -1,17 +1,18 @@
-﻿$ruleConfiguration = @{
-    Enable = $true
-    OnSameLine = $true
-    NewLineAfter = $true
-    IgnoreOneLineIf = $true
-}
+﻿Add-Dependency {
+    $ruleConfiguration = @{
+        Enable = $true
+        OnSameLine = $true
+        NewLineAfter = $true
+        IgnoreOneLineIf = $true
+    }
 
-$settings = @{
-    IncludeRules = @("PSPlaceOpenBrace")
-    Rules = @{
-        PSPlaceOpenBrace = $ruleConfiguration
+    $settings = @{
+        IncludeRules = @("PSPlaceOpenBrace")
+        Rules = @{
+            PSPlaceOpenBrace = $ruleConfiguration
+        }
     }
 }
-
 Describe "PlaceOpenBrace" {
     Context "When an open brace must be on the same line" {
         BeforeAll {

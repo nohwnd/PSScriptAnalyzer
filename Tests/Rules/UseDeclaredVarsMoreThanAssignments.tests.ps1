@@ -1,13 +1,14 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
+﻿Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
 
-Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
+    Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
 
-$violationMessage = "The variable 'declaredVar2' is assigned but never used."
-$violationName = "PSUseDeclaredVarsMoreThanAssignments"
-$violations = Invoke-ScriptAnalyzer $directory\UseDeclaredVarsMoreThanAssignments.ps1 | Where-Object {$_.RuleName -eq $violationName}
-$noViolations = Invoke-ScriptAnalyzer $directory\UseDeclaredVarsMoreThanAssignmentsNoViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
-
+    $violationMessage = "The variable 'declaredVar2' is assigned but never used."
+    $violationName = "PSUseDeclaredVarsMoreThanAssignments"
+    $violations = Invoke-ScriptAnalyzer $directory\UseDeclaredVarsMoreThanAssignments.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\UseDeclaredVarsMoreThanAssignmentsNoViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
+}
 Describe "UseDeclaredVarsMoreThanAssignments" {
     Context "When there are violations" {
         It "has 2 use declared vars more than assignments violations" {
@@ -72,7 +73,7 @@ function MyFunc2() {
         It "returns no violations" {
             $noViolations.Count | Should -Be 0
         }
-        
+
         It "Does not flag += operator" {
             $results = Invoke-ScriptAnalyzer -ScriptDefinition '$array=@(); $list | ForEach-Object { $array += $c }' | Where-Object { $_.RuleName -eq $violationName }
             $results.Count | Should -Be 0

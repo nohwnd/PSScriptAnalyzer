@@ -1,30 +1,31 @@
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
-Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
+Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
+    Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
 
-$testManifestPath = Join-Path $directory "TestManifest"
-$testManifestBadFunctionsWildcardPath = "ManifestBadFunctionsWildcard.psd1"
-$testManifestBadFunctionsWildcardInArrayPath = "ManifestBadFunctionsWildcardInArray.psd1"
-$testManifestBadFunctionsNullPath = "ManifestBadFunctionsNull.psd1"
-$testManifestBadCmdletsWildcardPath = "ManifestBadCmdletsWildcard.psd1"
-$testManifestBadAliasesWildcardPath = "ManifestBadAliasesWildcard.psd1"
-$testManifestBadVariablesWildcardPath = "ManifestBadVariablesWildcard.psd1"
-$testManifestBadAllPath = "ManifestBadAll.psd1"
-$testManifestGoodPath = "ManifestGood.psd1"
-$testManifestInvalidPath = "ManifestInvalid.psd1"
-Import-Module (Join-Path $directory "PSScriptAnalyzerTestHelper.psm1")
+    $testManifestPath = Join-Path $directory "TestManifest"
+    $testManifestBadFunctionsWildcardPath = "ManifestBadFunctionsWildcard.psd1"
+    $testManifestBadFunctionsWildcardInArrayPath = "ManifestBadFunctionsWildcardInArray.psd1"
+    $testManifestBadFunctionsNullPath = "ManifestBadFunctionsNull.psd1"
+    $testManifestBadCmdletsWildcardPath = "ManifestBadCmdletsWildcard.psd1"
+    $testManifestBadAliasesWildcardPath = "ManifestBadAliasesWildcard.psd1"
+    $testManifestBadVariablesWildcardPath = "ManifestBadVariablesWildcard.psd1"
+    $testManifestBadAllPath = "ManifestBadAll.psd1"
+    $testManifestGoodPath = "ManifestGood.psd1"
+    $testManifestInvalidPath = "ManifestInvalid.psd1"
+    Import-Module (Join-Path $directory "PSScriptAnalyzerTestHelper.psm1")
 
-Function Run-PSScriptAnalyzerRule
-{
-    Param(
-        [Parameter(Mandatory)]
-        [String] $ManifestPath
-    )
+    Function Run-PSScriptAnalyzerRule
+    {
+        Param(
+            [Parameter(Mandatory)]
+            [String] $ManifestPath
+        )
 
-    Invoke-ScriptAnalyzer -Path (Resolve-Path (Join-Path $testManifestPath $ManifestPath))`
-                            -IncludeRule PSUseToExportFieldsInManifest
+        Invoke-ScriptAnalyzer -Path (Resolve-Path (Join-Path $testManifestPath $ManifestPath))`
+                                -IncludeRule PSUseToExportFieldsInManifest
+    }
 }
-
 Describe "UseManifestExportFields" {
 
     Context "Invalid manifest file" {

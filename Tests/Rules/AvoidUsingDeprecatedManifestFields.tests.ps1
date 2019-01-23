@@ -1,9 +1,10 @@
-﻿$violationName = "PSAvoidUsingDeprecatedManifestFields"
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$violations = Invoke-ScriptAnalyzer "$directory\TestBadModule\TestDeprecatedManifestFields.psd1" | Where-Object {$_.RuleName -eq $violationName}
-$noViolations = Invoke-ScriptAnalyzer "$directory\TestGoodModule\TestGoodModule.psd1" | Where-Object {$_.RuleName -eq $violationName}
-$noViolations2 = Invoke-ScriptAnalyzer "$directory\TestGoodModule\TestDeprecatedManifestFieldsWithVersion2.psd1" | Where-Object {$_.RuleName -eq $violationName}
-
+﻿Add-Dependency {
+    $violationName = "PSAvoidUsingDeprecatedManifestFields"
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $violations = Invoke-ScriptAnalyzer "$directory\TestBadModule\TestDeprecatedManifestFields.psd1" | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations = Invoke-ScriptAnalyzer "$directory\TestGoodModule\TestGoodModule.psd1" | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations2 = Invoke-ScriptAnalyzer "$directory\TestGoodModule\TestDeprecatedManifestFieldsWithVersion2.psd1" | Where-Object {$_.RuleName -eq $violationName}
+}
 Describe "AvoidUsingDeprecatedManifestFields" {
     Context "When there are violations" {
         It "has 1 violations" {

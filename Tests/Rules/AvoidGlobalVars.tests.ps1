@@ -1,14 +1,16 @@
-﻿$globalMessage = "Found global variable 'Global:1'."
-$globalName = "PSAvoidGlobalVars"
+﻿Add-Dependency {
+    $globalMessage = "Found global variable 'Global:1'."
+    $globalName = "PSAvoidGlobalVars"
 
-$nonInitializedMessage = "Variable 'globalVars' is not initialized. Non-global variables must be initialized. To fix a violation of this rule, please initialize non-global variables."
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$violations = Invoke-ScriptAnalyzer $directory\AvoidGlobalOrUnitializedVars.ps1
+    $nonInitializedMessage = "Variable 'globalVars' is not initialized. Non-global variables must be initialized. To fix a violation of this rule, please initialize non-global variables."
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $violations = Invoke-ScriptAnalyzer $directory\AvoidGlobalOrUnitializedVars.ps1
 
-$globalViolations = $violations | Where-Object {$_.RuleName -eq $globalName}
+    $globalViolations = $violations | Where-Object {$_.RuleName -eq $globalName}
 
-$noViolations = Invoke-ScriptAnalyzer $directory\AvoidGlobalOrUnitializedVarsNoViolations.ps1
-$noGlobalViolations = $noViolations | Where-Object {$_.RuleName -eq $globalName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\AvoidGlobalOrUnitializedVarsNoViolations.ps1
+    $noGlobalViolations = $noViolations | Where-Object {$_.RuleName -eq $globalName}
+}
 
 Describe "AvoidGlobalVars" {
     Context "When there are violations" {

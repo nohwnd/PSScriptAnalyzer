@@ -1,10 +1,11 @@
-﻿$ruleName = "PSUseCompatibleCmdlets"
-$directory = Split-Path $MyInvocation.MyCommand.Path -Parent
-$testRootDirectory = Split-Path -Parent $directory
-$ruleTestDirectory = Join-Path $directory 'UseCompatibleCmdlets'
+﻿Add-Dependency {
+    $ruleName = "PSUseCompatibleCmdlets"
+    $directory = Split-Path $MyInvocation.MyCommand.Path -Parent
+    $testRootDirectory = Split-Path -Parent $directory
+    $ruleTestDirectory = Join-Path $directory 'UseCompatibleCmdlets'
 
-Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
-
+    Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
+}
 Describe "UseCompatibleCmdlets" {
     Context "script has violation" {
         It "detects violation" {

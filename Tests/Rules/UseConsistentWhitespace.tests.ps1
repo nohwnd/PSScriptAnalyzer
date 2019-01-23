@@ -1,24 +1,25 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
+﻿Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
 
-Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+    Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-$ruleName = "PSUseConsistentWhitespace"
-$ruleConfiguration = @{
-    Enable = $true
-    CheckOpenBrace = $false
-    CheckOpenParen = $false
-    CheckOperator = $false
-    CheckSeparator = $false
-}
+    $ruleName = "PSUseConsistentWhitespace"
+    $ruleConfiguration = @{
+        Enable = $true
+        CheckOpenBrace = $false
+        CheckOpenParen = $false
+        CheckOperator = $false
+        CheckSeparator = $false
+    }
 
-$settings = @{
-    IncludeRules = @($ruleName)
-    Rules = @{
-        PSUseConsistentWhitespace = $ruleConfiguration
+    $settings = @{
+        IncludeRules = @($ruleName)
+        Rules = @{
+            PSUseConsistentWhitespace = $ruleConfiguration
+        }
     }
 }
-
 Describe "UseWhitespace" {
     Context "When an open brace follows a keyword" {
         BeforeAll {

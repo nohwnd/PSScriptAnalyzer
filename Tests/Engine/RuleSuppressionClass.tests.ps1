@@ -1,13 +1,15 @@
-﻿$script:skipForV3V4 = $true
-if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
-    $script:skipForV3V4 = $false
+﻿Add-Dependency {
+    $script:skipForV3V4 = $true
+    if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
+        $script:skipForV3V4 = $false
+    }
+
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $violationsUsingScriptDefinition = Invoke-ScriptAnalyzer -ScriptDefinition (Get-Content -Raw "$directory\RuleSuppression.ps1")
+    $violations = Invoke-ScriptAnalyzer "$directory\RuleSuppression.ps1"
 }
 
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$violationsUsingScriptDefinition = Invoke-ScriptAnalyzer -ScriptDefinition (Get-Content -Raw "$directory\RuleSuppression.ps1")
-$violations = Invoke-ScriptAnalyzer "$directory\RuleSuppression.ps1"
-
-Describe "RuleSuppressionWithoutScope" {    
+Describe "RuleSuppressionWithoutScope" {
 
     Context "Class" {
         It "Does not raise violations" -skip:$script:skipForV3V4 {
@@ -24,7 +26,7 @@ Describe "RuleSuppressionWithoutScope" {
             $suppression.Count | Should -Be 0
             $suppression = $violationsUsingScriptDefinition | Where-Object {$_.RuleName -eq "PSAvoidUsingCmdletAliases" }
             $suppression.Count | Should -Be 0
-        }        
+        }
     }
 
     Context "Script" {

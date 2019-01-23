@@ -1,5 +1,7 @@
-Import-Module PSScriptAnalyzer
-$ruleName = "PSPossibleIncorrectUsageOfRedirectionOperator"
+Add-Dependency {
+    Import-Module PSScriptAnalyzer
+    $ruleName = "PSPossibleIncorrectUsageOfRedirectionOperator"
+}
 
 Describe "PossibleIncorrectUsageOfComparisonOperator" {
     Context "When there are violations" {

@@ -1,12 +1,13 @@
-﻿$violationMessageOne = "Missing BOM encoding for non-ASCII encoded file 'BOMAbsent_UTF16EncodedScript.ps1'"
-$violationMessageTwo = "Missing BOM encoding for non-ASCII encoded file 'BOMAbsent_UnknownEncodedScript.ps1'"
-$violationName = "PSUseBOMForUnicodeEncodedFile"
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$violationsOne = Invoke-ScriptAnalyzer "$directory\TestFiles\BOMAbsent_UTF16EncodedScript.ps1" | Where-Object {$_.RuleName -eq $violationName}
-$violationsTwo = Invoke-ScriptAnalyzer "$directory\TestFiles\BOMAbsent_UnknownEncodedScript.ps1" | Where-Object {$_.RuleName -eq $violationName}
-$noViolationsOne = Invoke-ScriptAnalyzer "$directory\TestFiles\BOMPresent_UTF16EncodedScript.ps1" | Where-Object {$_.RuleName -eq $violationName}
-$noViolationsTwo = Invoke-ScriptAnalyzer "$directory\TestFiles\BOMAbsent_ASCIIEncodedScript.ps1" | Where-Object {$_.RuleName -eq $violationName}
-
+﻿Add-Dependency {
+    $violationMessageOne = "Missing BOM encoding for non-ASCII encoded file 'BOMAbsent_UTF16EncodedScript.ps1'"
+    $violationMessageTwo = "Missing BOM encoding for non-ASCII encoded file 'BOMAbsent_UnknownEncodedScript.ps1'"
+    $violationName = "PSUseBOMForUnicodeEncodedFile"
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $violationsOne = Invoke-ScriptAnalyzer "$directory\TestFiles\BOMAbsent_UTF16EncodedScript.ps1" | Where-Object {$_.RuleName -eq $violationName}
+    $violationsTwo = Invoke-ScriptAnalyzer "$directory\TestFiles\BOMAbsent_UnknownEncodedScript.ps1" | Where-Object {$_.RuleName -eq $violationName}
+    $noViolationsOne = Invoke-ScriptAnalyzer "$directory\TestFiles\BOMPresent_UTF16EncodedScript.ps1" | Where-Object {$_.RuleName -eq $violationName}
+    $noViolationsTwo = Invoke-ScriptAnalyzer "$directory\TestFiles\BOMAbsent_ASCIIEncodedScript.ps1" | Where-Object {$_.RuleName -eq $violationName}
+}
 Describe "UseBOMForUnicodeEncodedFile" {
     Context "When there are violations" {
         It "has 1 rule violation for BOM Absent - UTF16 Encoded file" {

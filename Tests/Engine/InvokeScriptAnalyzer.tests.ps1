@@ -1,13 +1,18 @@
-﻿$sa = Get-Command Invoke-ScriptAnalyzer
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$singularNouns = "PSUseSingularNouns"
-$approvedVerb = "PSUseApprovedVerbs"
-$rules = Get-ScriptAnalyzerRule -Name ($singularNouns, "PSUseApprovedVerbs")
-$avoidRules = Get-ScriptAnalyzerRule -Name "PSAvoid*"
-$useRules = "PSUse*"
+﻿Add-Dependency {
+    $sa = Get-Command Invoke-ScriptAnalyzer
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $singularNouns = "PSUseSingularNouns"
+    $approvedVerb = "PSUseApprovedVerbs"
+    $rules = Get-ScriptAnalyzerRule -Name ($singularNouns, "PSUseApprovedVerbs")
+    $avoidRules = Get-ScriptAnalyzerRule -Name "PSAvoid*"
+    $useRules = "PSUse*"
+}
 
 Describe "Test available parameters" {
-    $params = $sa.Parameters
+    Add-FreeFloatingCode {
+        $params = $sa.Parameters
+    }
+
     Context "Path parameter" {
         It "has a Path parameter" {
             $params.ContainsKey("Path") | Should -BeTrue
@@ -181,15 +186,15 @@ Describe "Test Path" {
 			$numFilesResult | Should -Be $numFilesExpected
 			}
         }
-        
+
         Context "When piping in files" {
             It "Can be piped in from a string" {
                 $piped = ("$directory\TestScript.ps1" | Invoke-ScriptAnalyzer)
                 $explicit = Invoke-ScriptAnalyzer -Path $directory\TestScript.ps1
-    
+
                 $piped.Count | Should Be $explicit.Count
             }
-    
+
             It "Can be piped from Get-ChildItem" {
                 $piped = ( Get-ChildItem -Path $directory -Filter TestTestPath*.ps1 | Invoke-ScriptAnalyzer)
                 $explicit = Invoke-ScriptAnalyzer -Path $directory\TestTestPath*.ps1
@@ -199,8 +204,10 @@ Describe "Test Path" {
 	}
 
     Context "When given a directory" {
-        $withoutPathWithDirectory = Invoke-ScriptAnalyzer -Recurse $directory\RecursionDirectoryTest
-        $withPathWithDirectory = Invoke-ScriptAnalyzer -Recurse -Path $directory\RecursionDirectoryTest
+        BeforeAll {
+            $withoutPathWithDirectory = Invoke-ScriptAnalyzer -Recurse $directory\RecursionDirectoryTest
+            $withPathWithDirectory = Invoke-ScriptAnalyzer -Recurse -Path $directory\RecursionDirectoryTest
+        }
 
         It "Has the same count as without Path parameter"{
             $withoutPathWithDirectory.Count -eq $withPathWithDirectory.Count | Should -BeTrue
@@ -410,7 +417,7 @@ Describe "Test CustomizedRulePath" {
                     Pop-Location
                 }
             }
-            
+
             It "resolves rule preset when passed in via pipeline" {
                 $warnings = 'CodeFormattingStroustrup' | ForEach-Object {
                     Invoke-ScriptAnalyzer -ScriptDefinition 'if ($true){}' -Settings $_}
@@ -552,8 +559,8 @@ Describe "Test -EnableExit Switch" {
             else {
                 $result = powershell -command 'Invoke-Scriptanalyzer -ScriptDefinition gci -ReportSummary'
             }
-            
-            "$result" | Should -BeLike $reportSummaryFor1Warning 
+
+            "$result" | Should -BeLike $reportSummaryFor1Warning
         }
         It "does not print the report summary when not using -NoReportSummary switch" {
             if ($IsCoreCLR) {
@@ -562,8 +569,8 @@ Describe "Test -EnableExit Switch" {
             else {
                 $result = powershell -command 'Invoke-Scriptanalyzer -ScriptDefinition gci'
             }
-            
-            "$result" | Should -Not -BeLike $reportSummaryFor1Warning 
+
+            "$result" | Should -Not -BeLike $reportSummaryFor1Warning
         }
     }
 
@@ -582,9 +589,11 @@ Describe "Test -EnableExit Switch" {
                 $warnings.RuleName | Should -Be 'TypeNotFound'
             }
 
-            $testFilePath = "TestDrive:\testfile.ps1"
-            Set-Content $testFilePath -value $script
             It "does not throw and detect one expected warning after the parse error has occured when using -Path parameter set" {
+
+                $testFilePath = "TestDrive:\testfile.ps1"
+                Set-Content $testFilePath -value $script
+
                 $warnings = Invoke-ScriptAnalyzer -Path $testFilePath
                 $warnings.Count | Should -Be 1
                 $warnings.RuleName | Should -Be 'TypeNotFound'

@@ -1,14 +1,15 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
-Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
+﻿Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
+    Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
 
-$missingMessage = "The member 'ModuleVersion' is not present in the module manifest."
-$missingMemberRuleName = "PSMissingModuleManifestField"
-$violationFilepath = Join-Path $directory "TestBadModule\TestBadModule.psd1"
-$violations = Invoke-ScriptAnalyzer $violationFilepath | Where-Object {$_.RuleName -eq $missingMemberRuleName}
-$noViolations = Invoke-ScriptAnalyzer $directory\TestGoodModule\TestGoodModule.psd1 | Where-Object {$_.RuleName -eq $missingMemberRuleName}
-$noHashtableFilepath = Join-Path $directory "TestBadModule\NoHashtable.psd1"
-
+    $missingMessage = "The member 'ModuleVersion' is not present in the module manifest."
+    $missingMemberRuleName = "PSMissingModuleManifestField"
+    $violationFilepath = Join-Path $directory "TestBadModule\TestBadModule.psd1"
+    $violations = Invoke-ScriptAnalyzer $violationFilepath | Where-Object {$_.RuleName -eq $missingMemberRuleName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\TestGoodModule\TestGoodModule.psd1 | Where-Object {$_.RuleName -eq $missingMemberRuleName}
+    $noHashtableFilepath = Join-Path $directory "TestBadModule\NoHashtable.psd1"
+}
 Describe "MissingRequiredFieldModuleManifest" {
     BeforeAll {
         Import-Module (Join-Path $directory "PSScriptAnalyzerTestHelper.psm1") -Force

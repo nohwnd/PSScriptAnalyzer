@@ -1,5 +1,7 @@
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
 
+Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
 Describe "Resolve DSC Resource Dependency" {
     BeforeAll {
         $skipTest = $false
@@ -28,6 +30,10 @@ Describe "Resolve DSC Resource Dependency" {
     AfterAll {
         if ( $skipTest ) { return }
         $env:PSModulePath = $SavedPSModulePath
+    }
+
+    It "pester runs before all before the first test right now, so this forces it to run here" {
+
     }
 
     Context "Module handler class" {
@@ -193,16 +199,22 @@ Describe "Resolve DSC Resource Dependency" {
             $env:PSModulePath | Should -Be $oldPSModulePath
         }
 
-        if (!$skipTest)
-        {
-            $env:LOCALAPPDATA = $oldLocalAppDataPath
-            $env:TEMP = $oldTempPath
-            Remove-Item -Recurse -Path $tempModulePath -Force
-            Remove-Item -Recurse -Path $tempPath -Force
+        Add-FreeFloatingCode {
+            if (!$skipTest)
+            {
+                $env:LOCALAPPDATA = $oldLocalAppDataPath
+                $env:TEMP = $oldTempPath
+                Remove-Item -Recurse -Path $tempModulePath -Force
+                Remove-Item -Recurse -Path $tempPath -Force
+            }
         }
 
         It "Keeps the environment variables unchanged" -skip:$skipTest {
             Test-EnvironmentVariables($oldEnvVars)
         }
+    }
+
+    It "pester runs after all after the first test right now, so this forces it to run here" {
+
     }
 }

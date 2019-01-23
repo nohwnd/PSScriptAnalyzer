@@ -1,17 +1,18 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
+﻿Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
 
-Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+    Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-$settings = @{
-    IncludeRules = @("PSUseSupportsShouldProcess")
-    Rules = @{
-        PSUseSupportsShouldProcess = @{
-            Enable = $true
+    $settings = @{
+        IncludeRules = @("PSUseSupportsShouldProcess")
+        Rules = @{
+            PSUseSupportsShouldProcess = @{
+                Enable = $true
+            }
         }
     }
 }
-
 Describe "UseSupportsShouldProcess" {
     Context "When a function manually adds WhatIf and Confirm parameters" {
         It "Should find violation if only WhatIf is added" {

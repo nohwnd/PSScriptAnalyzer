@@ -1,18 +1,22 @@
-$currentPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ruleName = "PSDSCDscExamplesPresent"
+Add-Dependency {
+    $currentPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $ruleName = "PSDSCDscExamplesPresent"
 
-if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
+    if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
+}
+Describe "DscExamplesPresent rule in class based resource" {
 
- Describe "DscExamplesPresent rule in class based resource" {
-
-    $examplesPath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\Examples"
-    $classResourcePath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1"
+    Add-FreeFloatingCode {
+        $examplesPath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\Examples"
+        $classResourcePath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1"
+    }
 
     Context "When examples absent" {
 
-        $violations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $classResourcePath | Where-Object {$_.RuleName -eq $ruleName}
-        $violationMessage = "No examples found for resource 'FileResource'"
-
+        Add-FreeFloatingCode {
+            $violations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $classResourcePath | Where-Object {$_.RuleName -eq $ruleName}
+            $violationMessage = "No examples found for resource 'FileResource'"
+            }
         It "has 1 missing examples violation" {
             $violations.Count | Should -Be 1
         }
@@ -23,16 +27,21 @@ if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
     }
 
     Context "When examples present" {
-        New-Item -Path $examplesPath -ItemType Directory
-        New-Item -Path "$examplesPath\FileResource_Example.psm1" -ItemType File
 
-        $noViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $classResourcePath | Where-Object {$_.RuleName -eq $ruleName}
+        BeforeAll {
+            New-Item -Path $examplesPath -ItemType Directory
+            New-Item -Path "$examplesPath\FileResource_Example.psm1" -ItemType File
+
+            $noViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $classResourcePath | Where-Object {$_.RuleName -eq $ruleName}
+        }
 
         It "returns no violations" {
             $noViolations.Count | Should -Be 0
         }
 
-        Remove-Item -Path $examplesPath -Recurse -Force
+        AfterAll {
+            Remove-Item -Path $examplesPath -Recurse -Force
+        }
     }
  }
 }
@@ -44,8 +53,10 @@ Describe "DscExamplesPresent rule in regular (non-class) based resource" {
 
     Context "When examples absent" {
 
-        $violations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $resourcePath | Where-Object {$_.RuleName -eq $ruleName}
-        $violationMessage = "No examples found for resource 'MSFT_WaitForAll'"
+        BeforeAll {
+            $violations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $resourcePath | Where-Object {$_.RuleName -eq $ruleName}
+            $violationMessage = "No examples found for resource 'MSFT_WaitForAll'"
+        }
 
         It "has 1 missing examples violation" {
             $violations.Count | Should -Be 1
@@ -57,15 +68,19 @@ Describe "DscExamplesPresent rule in regular (non-class) based resource" {
     }
 
     Context "When examples present" {
-        New-Item -Path $examplesPath -ItemType Directory
-        New-Item -Path "$examplesPath\MSFT_WaitForAll_Example.psm1" -ItemType File
+        BeforeAll {
+            New-Item -Path $examplesPath -ItemType Directory
+            New-Item -Path "$examplesPath\MSFT_WaitForAll_Example.psm1" -ItemType File
 
-        $noViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $resourcePath | Where-Object {$_.RuleName -eq $ruleName}
+            $noViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $resourcePath | Where-Object {$_.RuleName -eq $ruleName}
+        }
 
         It "returns no violations" {
             $noViolations.Count | Should -Be 0
         }
 
-        Remove-Item -Path $examplesPath -Recurse -Force
+        AfterAll {
+            Remove-Item -Path $examplesPath -Recurse -Force
+        }
     }
 }

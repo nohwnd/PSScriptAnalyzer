@@ -202,7 +202,6 @@ function Get-CommandVersion {
 	}
 }
 
-
 if (!$RequiredVersion) {
 	$RequiredVersion = (Get-Module $ModuleName -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
 }

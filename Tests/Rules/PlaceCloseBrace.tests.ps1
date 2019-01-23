@@ -1,22 +1,23 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
+﻿Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
 
-Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+    Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-$ruleConfiguration = @{
-    Enable             = $true
-    NoEmptyLineBefore  = $true
-    IgnoreOneLineBlock = $true
-    NewLineAfter       = $true
-}
+    $ruleConfiguration = @{
+        Enable             = $true
+        NoEmptyLineBefore  = $true
+        IgnoreOneLineBlock = $true
+        NewLineAfter       = $true
+    }
 
-$settings = @{
-    IncludeRules = @("PSPlaceCloseBrace")
-    Rules        = @{
-        PSPlaceCloseBrace = $ruleConfiguration
+    $settings = @{
+        IncludeRules = @("PSPlaceCloseBrace")
+        Rules        = @{
+            PSPlaceCloseBrace = $ruleConfiguration
+        }
     }
 }
-
 Describe "PlaceCloseBrace" {
     Context "When a close brace is not on a new line" {
         BeforeAll {

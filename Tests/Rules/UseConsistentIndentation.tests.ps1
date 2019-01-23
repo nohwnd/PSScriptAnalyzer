@@ -1,20 +1,22 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
+﻿Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
 
-Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+    Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-$indentationUnit = ' '
-$indentationSize = 4
-$ruleConfiguration = @{
-    Enable          = $true
-    IndentationSize = 4
-    Kind            = 'space'
-}
+    $indentationUnit = ' '
+    $indentationSize = 4
+    $ruleConfiguration = @{
+        Enable          = $true
+        IndentationSize = 4
+        Kind            = 'space'
+    }
 
-$settings = @{
-    IncludeRules = @("PSUseConsistentIndentation")
-    Rules        = @{
-        PSUseConsistentIndentation = $ruleConfiguration
+    $settings = @{
+        IncludeRules = @("PSUseConsistentIndentation")
+        Rules        = @{
+            PSUseConsistentIndentation = $ruleConfiguration
+        }
     }
 }
 

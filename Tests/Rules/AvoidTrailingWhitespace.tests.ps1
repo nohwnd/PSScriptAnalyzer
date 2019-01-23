@@ -1,12 +1,14 @@
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testRootDirectory = Split-Path -Parent $directory
+Add-Dependency {
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $testRootDirectory = Split-Path -Parent $directory
 
-Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+    Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-$ruleName = "PSAvoidTrailingWhitespace"
+    $ruleName = "PSAvoidTrailingWhitespace"
 
-$settings = @{
-    IncludeRules = @($ruleName)
+    $settings = @{
+        IncludeRules = @($ruleName)
+    }
 }
 
 Describe "AvoidTrailingWhitespace" {

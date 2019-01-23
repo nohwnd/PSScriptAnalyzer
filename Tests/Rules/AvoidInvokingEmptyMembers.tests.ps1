@@ -1,8 +1,10 @@
-﻿$violationMessage = "() has non-constant members. Invoking non-constant members may cause bugs in the script."
-$violationName = "PSAvoidInvokingEmptyMembers"
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-$violations = Invoke-ScriptAnalyzer $directory\AvoidInvokingEmptyMembers.ps1 | Where-Object {$_.RuleName -eq $violationName}
-$noViolations = Invoke-ScriptAnalyzer $directory\AvoidInvokingEmptyMembersNonViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
+﻿Add-Dependency {
+    $violationMessage = "() has non-constant members. Invoking non-constant members may cause bugs in the script."
+    $violationName = "PSAvoidInvokingEmptyMembers"
+    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $violations = Invoke-ScriptAnalyzer $directory\AvoidInvokingEmptyMembers.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\AvoidInvokingEmptyMembersNonViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
+}
 
 Describe "AvoidInvokingEmptyMembers" {
     Context "When there are violations" {
