@@ -1,12 +1,13 @@
-﻿Add-Dependency {
+﻿
 $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $testRootDirectory = Split-Path -Parent $directory
-Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
+Add-Dependency {
+    Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
 
-$violationsUsingScriptDefinition = Invoke-ScriptAnalyzer -ScriptDefinition (Get-Content -Raw "$directory\RuleSuppression.ps1")
-$violations = Invoke-ScriptAnalyzer "$directory\RuleSuppression.ps1"
+    $violationsUsingScriptDefinition = Invoke-ScriptAnalyzer -ScriptDefinition (Get-Content -Raw "$directory\RuleSuppression.ps1")
+    $violations = Invoke-ScriptAnalyzer "$directory\RuleSuppression.ps1"
 
-$ruleSuppressionBad = @'
+    $ruleSuppressionBad = @'
 Function do-something
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingUserNameAndPassWordParams", "username")]
@@ -17,7 +18,7 @@ Function do-something
 }
 '@
 
-$ruleSuppressionInConfiguration = @'
+    $ruleSuppressionInConfiguration = @'
 Configuration xFileUpload
 {
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
@@ -26,8 +27,8 @@ $securePassword = ConvertTo-SecureString $decryptedPassword -AsPlainText -Force
 }
 '@
 
-# If function doesn't starts at offset 0, then the test case fails before commit b551211
-$ruleSuppressionAvoidUsernameAndPassword = @'
+    # If function doesn't starts at offset 0, then the test case fails before commit b551211
+    $ruleSuppressionAvoidUsernameAndPassword = @'
 
 function SuppressUserAndPwdRule()
 {

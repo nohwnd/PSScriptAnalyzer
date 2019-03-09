@@ -1,6 +1,7 @@
-﻿Add-Dependency {
+﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+Add-Dependency {
     $sa = Get-Command Invoke-ScriptAnalyzer
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
     $singularNouns = "PSUseSingularNouns"
     $approvedVerb = "PSUseApprovedVerbs"
     $rules = Get-ScriptAnalyzerRule -Name ($singularNouns, "PSUseApprovedVerbs")

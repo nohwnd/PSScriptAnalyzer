@@ -1,10 +1,11 @@
-﻿Add-Dependency {
-    $script:skipForV3V4 = $true
-    if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
-        $script:skipForV3V4 = $false
-    }
+﻿$script:skipForV3V4 = $true
+if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
+    $script:skipForV3V4 = $false
+}
 
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+Add-Dependency {
     $violationsUsingScriptDefinition = Invoke-ScriptAnalyzer -ScriptDefinition (Get-Content -Raw "$directory\RuleSuppression.ps1")
     $violations = Invoke-ScriptAnalyzer "$directory\RuleSuppression.ps1"
 }

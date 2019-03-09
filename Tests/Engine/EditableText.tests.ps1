@@ -3,9 +3,10 @@ $testRootDirectory = Split-Path -Parent $directory
 
 Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-$editableTextType = "Microsoft.Windows.PowerShell.ScriptAnalyzer.EditableText"
-$textEditType = "Microsoft.Windows.PowerShell.ScriptAnalyzer.TextEdit"
-
+Add-Dependency {
+    $editableTextType = "Microsoft.Windows.PowerShell.ScriptAnalyzer.EditableText"
+    $textEditType = "Microsoft.Windows.PowerShell.ScriptAnalyzer.TextEdit"
+}
 Describe "EditableText class" {
     Context "When a sigle edit is given for application" {
         It "Should replace in a single line string in the middle" {

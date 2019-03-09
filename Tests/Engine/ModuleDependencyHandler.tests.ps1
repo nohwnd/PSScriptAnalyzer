@@ -1,7 +1,6 @@
 
-Add-Dependency {
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-}
+$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+
 Describe "Resolve DSC Resource Dependency" {
     BeforeAll {
         $skipTest = $false

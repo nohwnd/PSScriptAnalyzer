@@ -1,7 +1,8 @@
+Write-host "- $($MyInvocation.MyCommand.Path) -"
+$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$testRootDirectory = Split-Path -Parent $directory
+
 Add-Dependency {
-    Write-host "- $($MyInvocation.MyCommand.Path) -"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
-    $testRootDirectory = Split-Path -Parent $directory
     $p = (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
     Write-Host "- $p -"
     Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')

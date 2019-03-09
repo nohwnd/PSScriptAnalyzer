@@ -1,6 +1,7 @@
 Describe "TextEdit Class" {
-    $type = [Microsoft.Windows.PowerShell.ScriptAnalyzer.TextEdit]
-
+    BeforeAll {
+        $type = [Microsoft.Windows.PowerShell.ScriptAnalyzer.TextEdit]
+    }
     Context "Object construction" {
         It "creates the object with correct properties" {
             $correctionExtent = New-Object -TypeName $type -ArgumentList 1, 2, 3, 4, "get-childitem"
