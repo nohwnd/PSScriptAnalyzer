@@ -1,22 +1,24 @@
 Add-Dependency {
     $currentPath = $PSScriptRoot
     $ruleName = "PSDSCDscExamplesPresent"
-
-    if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
 }
+
+if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
+
 Describe "DscExamplesPresent rule in class based resource" {
 
-    Add-FreeFloatingCode -ScriptBlock {
+    BeforeAll {
         $examplesPath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\Examples"
         $classResourcePath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1"
     }
 
     Context "When examples absent" {
 
-        Add-FreeFloatingCode -ScriptBlock {
+        BeforeAll {
             $violations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $classResourcePath | Where-Object {$_.RuleName -eq $ruleName}
             $violationMessage = "No examples found for resource 'FileResource'"
-            }
+        }
+
         It "has 1 missing examples violation" {
             $violations.Count | Should -Be 1
         }
@@ -48,8 +50,10 @@ Describe "DscExamplesPresent rule in class based resource" {
 
 Describe "DscExamplesPresent rule in regular (non-class) based resource" {
 
-    $examplesPath = "$currentPath\DSCResourceModule\Examples"
-    $resourcePath = "$currentPath\DSCResourceModule\DSCResources\MSFT_WaitForAll\MSFT_WaitForAll.psm1"
+    BeforeAll {
+        $examplesPath = "$currentPath\DSCResourceModule\Examples"
+        $resourcePath = "$currentPath\DSCResourceModule\DSCResources\MSFT_WaitForAll\MSFT_WaitForAll.psm1"
+    }
 
     Context "When examples absent" {
 

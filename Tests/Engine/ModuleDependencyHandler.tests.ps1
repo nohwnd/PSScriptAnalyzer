@@ -2,13 +2,15 @@
 $directory = $PSScriptRoot
 
 Describe "Resolve DSC Resource Dependency" {
+
+    $skipTest = $false
+    if ($IsLinux -or $IsMacOS -or $testingLibararyUsage -or ($PSversionTable.PSVersion -lt [Version]'5.0.0'))
+    {
+        $skipTest = $true
+        return
+    }
+
     BeforeAll {
-        $skipTest = $false
-        if ($IsLinux -or $IsMacOS -or $testingLibararyUsage -or ($PSversionTable.PSVersion -lt [Version]'5.0.0'))
-        {
-            $skipTest = $true
-            return
-        }
         $SavedPSModulePath = $env:PSModulePath
         $violationFileName = 'MissingDSCResource.ps1'
         $violationFilePath = Join-Path $directory $violationFileName
@@ -26,6 +28,7 @@ Describe "Resolve DSC Resource Dependency" {
             }
         }
     }
+
     AfterAll {
         if ( $skipTest ) { return }
         $env:PSModulePath = $SavedPSModulePath
@@ -36,8 +39,8 @@ Describe "Resolve DSC Resource Dependency" {
     }
 
     Context "Module handler class" {
+        if ( $skipTest ) { return }
         BeforeAll {
-            if ( $skipTest ) { return }
             $moduleHandlerType = [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.ModuleDependencyHandler]
             $oldEnvVars = Get-Item Env:\* | Sort-Object -Property Key
             $oldPSModulePath = $env:PSModulePath
@@ -150,8 +153,8 @@ Describe "Resolve DSC Resource Dependency" {
     }
 
     Context "Invoke-ScriptAnalyzer without switch but with module in temp path" {
+        if ( $skipTest ) { return }
         BeforeAll {
-            if ( $skipTest ) { return }
             $oldEnvVars = Get-Item Env:\* | Sort-Object -Property Key
             $moduleName = "MyDscResource"
             $modulePath = "$(Split-Path $directory)\Rules\DSCResourceModule\DSCResources\$moduleName"

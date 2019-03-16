@@ -237,7 +237,10 @@ function Test-ScriptAnalyzer
         try {
             $savedModulePath = $env:PSModulePath
             $env:PSModulePath = "${testModulePath}{0}${env:PSModulePath}" -f [System.IO.Path]::PathSeparator
+
+             # $testScripts = @("C:\Projects\psscriptanalyzer\Tests\Engine\ModuleDependencyHandler.tests.ps1")
             $scriptBlock = [scriptblock]::Create("`$global:PesterDebugPreference = @{ ShowFullErrors = `$true; WriteDebugMessages = `$false;WriteDebugMessagesFrom = 'Runtime' } ; Get-module pester | remove-module ; import-module c:\projects\pester_main\pester.psd1; Invoke-Pester -Path $testScripts -OutputFormat NUnitXml -OutputFile $testResultsFile -Show Describe,Summary")
+
             if ( $InProcess ) {
                 & $scriptBlock
             }

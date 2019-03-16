@@ -1,4 +1,4 @@
-$directory = Split-Path $PSScriptRoot
+$directory = $PSScriptRoot
 $settingsTestDirectory = [System.IO.Path]::Combine($directory, "SettingsTest")
 $project1Root = [System.IO.Path]::Combine($settingsTestDirectory, "Project1")
 $project2Root = [System.IO.Path]::Combine($settingsTestDirectory, "Project2")

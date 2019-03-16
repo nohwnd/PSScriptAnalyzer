@@ -1,6 +1,6 @@
 Function Get-SolutionPath
 {
-    Split-Path $PSScriptRoot -Parent
+    $PSScriptRoot
 }
 
 Function Get-ChangeLogPath
