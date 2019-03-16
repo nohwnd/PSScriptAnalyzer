@@ -1,7 +1,7 @@
 ﻿Import-Module -Verbose ScriptAnalyzer
 $violationMessage = "Command Get-WrongCommand Is Not Found"
 $violationName = "PSCommandNotFound"
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 $violations = Invoke-ScriptAnalyzer $directory\CommandNotFound.ps1 | Where-Object {$_.RuleName -eq $violationName}
 $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
 $noViolationsDSC = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $directory\serviceconfigdisabled.ps1 | Where-Object {$_.RuleName -eq $violationName}

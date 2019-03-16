@@ -1,7 +1,7 @@
 ﻿Add-Dependency {
     $violationMessage = "'cls' is an alias of 'Clear-Host'. Alias can introduce possible problems and make scripts hard to maintain. Please consider changing alias to its full content."
     $violationName = "PSAvoidUsingCmdletAliases"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $testRootDirectory = Split-Path -Parent $directory
     $violationFilepath = Join-Path $directory 'AvoidUsingAlias.ps1'
     $violations = Invoke-ScriptAnalyzer $violationFilepath | Where-Object {$_.RuleName -eq $violationName}

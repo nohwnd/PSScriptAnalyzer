@@ -1,4 +1,4 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+﻿$directory = $PSScriptRoot
 
 Add-Dependency {
     $sa = Get-Command Invoke-ScriptAnalyzer
@@ -10,7 +10,7 @@ Add-Dependency {
 }
 
 Describe "Test available parameters" {
-    Add-FreeFloatingCode {
+    BeforeAll {
         $params = $sa.Parameters
     }
 

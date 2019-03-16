@@ -1,5 +1,5 @@
 Add-Dependency {
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $ruleName = 'PSDSCUseIdenticalMandatoryParametersForDSC'
     $resourceBasepath = "$directory\DSCResourceModule\DSCResources"
     $badResourceFilepath = [System.IO.Path]::Combine(

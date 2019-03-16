@@ -1,7 +1,7 @@
 ﻿Add-Dependency {
     $violationMessage = "The Test and Set-TargetResource functions of DSC Resource must have the same parameters."
     $violationName = "PSDSCUseIdenticalParametersForDSC"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer $directory\DSCResourceModule\DSCResources\MSFT_WaitForAll\MSFT_WaitForAll.psm1 | Where-Object {$_.RuleName -eq $violationName}
     $noViolations = Invoke-ScriptAnalyzer $directory\DSCResourceModule\DSCResources\MSFT_WaitForAny\MSFT_WaitForAny.psm1 | Where-Object {$_.RuleName -eq $violationName}
 

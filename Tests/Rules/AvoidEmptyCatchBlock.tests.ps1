@@ -1,7 +1,7 @@
 ﻿Add-Dependency {
     $violationMessage = "Empty catch block is used. Please use Write-Error or throw statements in catch blocks."
     $violationName = "PSAvoidUsingEmptyCatchBlock"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer $directory\AvoidEmptyCatchBlock.ps1 | Where-Object {$_.RuleName -eq $violationName}
     $noViolations = Invoke-ScriptAnalyzer $directory\AvoidEmptyCatchBlockNoViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
 }

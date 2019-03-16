@@ -1,4 +1,4 @@
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 $testRootDirectory = Split-Path -Parent $directory
 $repoRootDirectory = Split-Path -Parent $testRootDirectory
 $ruleDocDirectory = Join-Path $repoRootDirectory RuleDocumentation
@@ -56,7 +56,7 @@ Describe "Validate rule documentation files" {
             $filePath | Should -Exist
         }
     }
-    
+
     It "Every rule name in the rule documentation README.md file must match the documentation file's basename" {
         foreach ($key in $readmeLinks.Keys) {
             $link = $readmeLinks[$key]

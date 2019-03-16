@@ -1,19 +1,19 @@
 Add-Dependency {
-    $currentPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $currentPath = $PSScriptRoot
     $ruleName = "PSDSCDscExamplesPresent"
 
     if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
 }
 Describe "DscExamplesPresent rule in class based resource" {
 
-    Add-FreeFloatingCode {
+    Add-FreeFloatingCode -ScriptBlock {
         $examplesPath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\Examples"
         $classResourcePath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1"
     }
 
     Context "When examples absent" {
 
-        Add-FreeFloatingCode {
+        Add-FreeFloatingCode -ScriptBlock {
             $violations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $classResourcePath | Where-Object {$_.RuleName -eq $ruleName}
             $violationMessage = "No examples found for resource 'FileResource'"
             }

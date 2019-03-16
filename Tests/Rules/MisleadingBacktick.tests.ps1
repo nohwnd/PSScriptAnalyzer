@@ -1,6 +1,6 @@
 Add-Dependency {
     $writeHostName = "PSMisleadingBacktick"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violationFilepath = Join-Path $directory 'MisleadingBacktick.ps1'
     $violations = Invoke-ScriptAnalyzer $violationFilepath | Where-Object {$_.RuleName -eq $writeHostName}
     $noViolations = Invoke-ScriptAnalyzer $directory\NoMisleadingBacktick.ps1 | Where-Object {$_.RuleName -eq $clearHostName}

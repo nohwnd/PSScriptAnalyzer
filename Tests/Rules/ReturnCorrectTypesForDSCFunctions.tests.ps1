@@ -2,7 +2,7 @@
     $violationMessageDSCResource = "Test-TargetResource function in DSC Resource should return object of type System.Boolean instead of System.Collections.Hashtable"
     $violationMessageDSCClass = "Get function in DSC Class FileResource should return object of type FileResource instead of type System.Collections.Hashtable"
     $violationName = "PSDSCReturnCorrectTypesForDSCFunctions"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer $directory\DSCResourceModule\DSCResources\MSFT_WaitForAll\MSFT_WaitForAll.psm1 | Where-Object {$_.RuleName -eq $violationName}
     $noViolations = Invoke-ScriptAnalyzer $directory\DSCResourceModule\DSCResources\MSFT_WaitForAny\MSFT_WaitForAny.psm1 | Where-Object {$_.RuleName -eq $violationName}
 

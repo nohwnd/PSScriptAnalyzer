@@ -7,7 +7,7 @@ The file path "\\\\scratch2\\scratch\\" of AvoidUsingFilePath.ps1 is rooted. Thi
 '@
 
 $violationName = "PSAvoidUsingFilePath"
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 $violations = Invoke-ScriptAnalyzer $directory\AvoidUsingFilePath.ps1 | Where-Object {$_.RuleName -eq $violationName}
 $noViolations = Invoke-ScriptAnalyzer $directory\AvoidUsingFilePathNoViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
 

@@ -1,5 +1,5 @@
 
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 
 Describe "Resolve DSC Resource Dependency" {
     BeforeAll {
@@ -198,7 +198,7 @@ Describe "Resolve DSC Resource Dependency" {
             $env:PSModulePath | Should -Be $oldPSModulePath
         }
 
-        Add-FreeFloatingCode {
+        Add-FreeFloatingCode -ScriptBlock {
             if (!$skipTest)
             {
                 $env:LOCALAPPDATA = $oldLocalAppDataPath

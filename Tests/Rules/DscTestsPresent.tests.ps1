@@ -1,5 +1,5 @@
 Add-Dependency {
-    $currentPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $currentPath = $PSScriptRoot
     $ruleName = "PSDSCDscTestsPresent"
 }
 
@@ -7,7 +7,7 @@ if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
 
 Describe "DscTestsPresent rule in class based resource" {
 
-    Add-FreeFloatingCode {
+    Add-FreeFloatingCode -ScriptBlock {
         $testsPath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\Tests"
         $classResourcePath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1"
     }
@@ -47,7 +47,7 @@ Describe "DscTestsPresent rule in class based resource" {
 
 Describe "DscTestsPresent rule in regular (non-class) based resource" {
 
-    Add-FreeFloatingCode {
+    Add-FreeFloatingCode -ScriptBlock {
         $testsPath = "$currentPath\DSCResourceModule\Tests"
         $resourcePath = "$currentPath\DSCResourceModule\DSCResources\MSFT_WaitForAll\MSFT_WaitForAll.psm1"
     }

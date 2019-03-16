@@ -1,7 +1,7 @@
 ﻿Add-Dependency {
     $violationMessage = "Function 'Set-MyObject' has verb that could change system state. Therefore, the function has to support 'ShouldProcess'"
     $violationName = "PSUseShouldProcessForStateChangingFunctions"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer $directory\UseShouldProcessForStateChangingFunctions.ps1 | Where-Object {$_.RuleName -eq $violationName}
     $noViolations = Invoke-ScriptAnalyzer $directory\UseShouldProcessForStateChangingFunctionsNoViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
 }

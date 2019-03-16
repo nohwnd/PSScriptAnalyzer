@@ -1,7 +1,7 @@
 ﻿Import-Module -Verbose PSScriptAnalyzer
 $violationMessage = "Type Stre is not found"
 $violationName = "PSTypeNotFound"
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 $violations = Invoke-ScriptAnalyzer $directory\TypeNotFound.ps1 | Where-Object {$_.RuleName -eq $violationName}
 $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
 

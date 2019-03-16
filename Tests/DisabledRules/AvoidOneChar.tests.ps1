@@ -1,7 +1,7 @@
 ﻿Import-Module PSScriptAnalyzer
 $oneCharMessage = "The cmdlet name O only has one character."
 $oneCharName = "PSOneChar"
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 $invoke = Invoke-ScriptAnalyzer $directory\AvoidUsingReservedCharOneCharNames.ps1 | Where-Object {$_.RuleName -eq $oneCharName}
 $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $oneCharName}
 

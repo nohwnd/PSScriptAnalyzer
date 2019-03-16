@@ -1,6 +1,6 @@
 ﻿Add-Dependency {
     $ruleName = "PSUseCompatibleCmdlets"
-    $directory = Split-Path $MyInvocation.MyCommand.Path -Parent
+    $directory = Split-Path $PSScriptRoot -Parent
     $testRootDirectory = Split-Path -Parent $directory
     $ruleTestDirectory = Join-Path $directory 'UseCompatibleCmdlets'
 

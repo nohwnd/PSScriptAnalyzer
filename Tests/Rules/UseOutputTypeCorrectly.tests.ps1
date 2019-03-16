@@ -1,7 +1,7 @@
 ﻿Add-Dependency {
     $violationMessage = "The cmdlet 'Verb-Files' returns an object of type 'System.Collections.Hashtable' but this type is not declared in the OutputType attribute."
     $violationName = "PSUseOutputTypeCorrectly"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer $directory\BadCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
 
     if ($PSVersionTable.PSVersion -ge [Version]'5.0.0')

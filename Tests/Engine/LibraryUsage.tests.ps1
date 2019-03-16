@@ -1,4 +1,4 @@
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 $testRootDirectory = Split-Path -Parent $directory
 Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
 
@@ -202,7 +202,7 @@ public class PesterTestOutputWriter : IOutputWriter
 . $directory\RuleSuppression.tests.ps1
 . $directory\CustomizedRule.tests.ps1
 
-Add-FreeFloatingCode {
+Add-FreeFloatingCode -ScriptBlock {
 	# We're done testing library usage
 	$testingLibraryUsage = $false
 

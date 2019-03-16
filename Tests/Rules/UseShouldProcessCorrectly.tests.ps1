@@ -1,7 +1,7 @@
 ﻿Add-Dependency {
     $violationMessage = "'Verb-Files' has the ShouldProcess attribute but does not call ShouldProcess/ShouldContinue."
     $violationName = "PSShouldProcess"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $testRootDirectory = Split-Path -Parent $directory
 
     Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')

@@ -1,7 +1,7 @@
 ﻿Add-Dependency {
     $reservedCharMessage = "The cmdlet 'Use-#Reserved' uses a reserved char in its name."
     $reservedCharName = "PSReservedCmdletChar"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer $directory\AvoidUsingReservedCharNames.ps1 | Where-Object {$_.RuleName -eq $reservedCharName}
     $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $reservedCharName}
 }

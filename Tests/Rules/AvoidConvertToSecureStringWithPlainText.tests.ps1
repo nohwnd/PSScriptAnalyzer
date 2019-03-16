@@ -1,4 +1,4 @@
-﻿$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+﻿$directory = $PSScriptRoot
 Add-Dependency {
     Set-Alias ctss ConvertTo-SecureString
     $violationMessage = "File 'AvoidConvertToSecureStringWithPlainText.ps1' uses ConvertTo-SecureString with plaintext. This will expose secure information. Encrypted standard strings should be used instead."

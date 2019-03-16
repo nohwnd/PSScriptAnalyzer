@@ -1,5 +1,5 @@
-Write-host "- $($MyInvocation.MyCommand.Path) -"
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+Write-host "- $($PSScriptRoot) -"
+$directory = $PSScriptRoot
 $testRootDirectory = Split-Path -Parent $directory
 
 Add-Dependency {

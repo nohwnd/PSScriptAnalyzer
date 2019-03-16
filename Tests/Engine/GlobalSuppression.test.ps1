@@ -6,7 +6,7 @@ if (!(Get-Module PSScriptAnalyzer) -and !$testingLibraryUsage)
 	Import-Module -Verbose PSScriptAnalyzer
 }
 
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 $violations = Invoke-ScriptAnalyzer "$directory\GlobalSuppression.ps1"
 $violationsUsingScriptDefinition = Invoke-ScriptAnalyzer -ScriptDefinition (Get-Content -Raw "$directory\GlobalSuppression.ps1")
 $suppression = Invoke-ScriptAnalyzer "$directory\GlobalSuppression.ps1" -Profile "$directory\Profile.ps1"
@@ -53,7 +53,7 @@ Describe "GlobalSuppression" {
             $withProfile = $suppressionUsingScriptDefinition | Where-Object { $_.RuleName -eq "PSAvoidUsingComputerNameHardcoded" }
             $withProfile.Count | Should -Be 0
         }
-        
+
         It "Does not raise any violation for computername hard-coded using configuration hashtable" {
             $hashtableConfiguration = Invoke-ScriptAnalyzer "$directory\GlobalSuppression.ps1" -Settings @{"includerules" = @("PSAvoidUsingCmdletAliases", "PSUseOutputTypeCorrectly")} |
                                         Where-Object { $_.RuleName -eq "PSAvoidUsingComputerNameHardcoded"}

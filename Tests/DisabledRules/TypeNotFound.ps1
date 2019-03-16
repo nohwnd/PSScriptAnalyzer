@@ -2,4 +2,4 @@
 	[Stt]$a = 3
 }
 
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot

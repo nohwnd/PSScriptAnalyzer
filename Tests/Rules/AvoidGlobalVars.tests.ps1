@@ -3,7 +3,7 @@
     $globalName = "PSAvoidGlobalVars"
 
     $nonInitializedMessage = "Variable 'globalVars' is not initialized. Non-global variables must be initialized. To fix a violation of this rule, please initialize non-global variables."
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer $directory\AvoidGlobalOrUnitializedVars.ps1
 
     $globalViolations = $violations | Where-Object {$_.RuleName -eq $globalName}

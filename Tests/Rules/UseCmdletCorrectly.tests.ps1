@@ -1,7 +1,7 @@
 ﻿Add-Dependency {
     $violationMessage = "Cmdlet 'Write-Warning' may be used incorrectly. Please check that all mandatory parameters are supplied."
     $violationName = "PSUseCmdletCorrectly"
-    $directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer $directory\UseCmdletCorrectly.ps1 | Where-Object {$_.RuleName -eq $violationName}
     $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
 }

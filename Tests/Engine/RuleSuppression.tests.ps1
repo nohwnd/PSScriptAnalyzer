@@ -1,5 +1,5 @@
 ﻿
-$directory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$directory = $PSScriptRoot
 $testRootDirectory = Split-Path -Parent $directory
 Add-Dependency {
     Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
