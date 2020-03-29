@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = [regex]::Escape("Verb-Files' defines the reserved common parameter 'Verbose'.")
     $violationName = "PSReservedParams"
     $directory = $PSScriptRoot

@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "Cmdlet 'Get-Command' has positional parameter. Please use named parameters instead of positional parameters when calling a command."
     $violationName = "PSAvoidUsingPositionalParameters"
     $directory = $PSScriptRoot

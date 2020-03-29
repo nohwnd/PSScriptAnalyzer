@@ -5,7 +5,7 @@ if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
 
 $directory = $PSScriptRoot
 
-Add-Dependency {
+BeforeAll {
     $violationsUsingScriptDefinition = Invoke-ScriptAnalyzer -ScriptDefinition (Get-Content -Raw "$directory\RuleSuppression.ps1")
     $violations = Invoke-ScriptAnalyzer "$directory\RuleSuppression.ps1"
 }

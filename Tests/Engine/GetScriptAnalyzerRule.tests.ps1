@@ -2,7 +2,7 @@ Write-host "- $($PSScriptRoot) -"
 $directory = $PSScriptRoot
 $testRootDirectory = Split-Path -Parent $directory
 
-Add-Dependency {
+BeforeAll {
     $p = (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
     Write-Host "- $p -"
     Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')

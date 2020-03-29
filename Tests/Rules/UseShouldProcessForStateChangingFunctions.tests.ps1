@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "Function 'Set-MyObject' has verb that could change system state. Therefore, the function has to support 'ShouldProcess'"
     $violationName = "PSUseShouldProcessForStateChangingFunctions"
     $directory = $PSScriptRoot

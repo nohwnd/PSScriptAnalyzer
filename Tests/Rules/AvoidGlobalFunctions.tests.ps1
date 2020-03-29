@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $functionErroMessage = "Avoid creating functions with a Global scope."
     $violationName = "PSAvoidGlobalFunctions"
 

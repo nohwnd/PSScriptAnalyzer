@@ -1,5 +1,5 @@
 ﻿
-Add-Dependency {
+BeforeAll {
     $ruleName = "PSUseCompatibleCmdlets"
 
     $directory = $PSScriptRoot

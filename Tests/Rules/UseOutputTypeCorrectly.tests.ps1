@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "The cmdlet 'Verb-Files' returns an object of type 'System.Collections.Hashtable' but this type is not declared in the OutputType attribute."
     $violationName = "PSUseOutputTypeCorrectly"
     $directory = $PSScriptRoot

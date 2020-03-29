@@ -1,5 +1,5 @@
 ﻿$directory = $PSScriptRoot
-Add-Dependency {
+BeforeAll {
     Set-Alias ctss ConvertTo-SecureString
     $violationMessage = "File 'AvoidConvertToSecureStringWithPlainText.ps1' uses ConvertTo-SecureString with plaintext. This will expose secure information. Encrypted standard strings should be used instead."
     $violationName = "PSAvoidUsingConvertToSecureStringWithPlainText"

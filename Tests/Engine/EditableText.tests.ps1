@@ -3,7 +3,7 @@ $testRootDirectory = Split-Path -Parent $directory
 
 Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-Add-Dependency {
+BeforeAll {
     $editableTextType = "Microsoft.Windows.PowerShell.ScriptAnalyzer.EditableText"
     $textEditType = "Microsoft.Windows.PowerShell.ScriptAnalyzer.TextEdit"
 }

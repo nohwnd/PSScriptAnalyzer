@@ -1,4 +1,4 @@
-Add-Dependency {
+BeforeAll {
     Import-Module PSScriptAnalyzer
     $ruleName = "PSPossibleIncorrectUsageOfRedirectionOperator"
 }

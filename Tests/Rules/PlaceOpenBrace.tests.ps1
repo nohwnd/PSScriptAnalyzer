@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $ruleConfiguration = @{
         Enable = $true
         OnSameLine = $true

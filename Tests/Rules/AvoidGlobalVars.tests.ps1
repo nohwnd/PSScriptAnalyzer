@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $globalMessage = "Found global variable 'Global:1'."
     $globalName = "PSAvoidGlobalVars"
 

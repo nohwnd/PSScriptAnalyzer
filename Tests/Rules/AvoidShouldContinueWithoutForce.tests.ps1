@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "Function 'Verb-Noun2' in file 'AvoidShouldContinueWithoutForce.ps1' uses ShouldContinue but does not have a boolean force parameter. The force parameter will allow users of the script to bypass ShouldContinue prompt"
     $violationName = "PSAvoidShouldContinueWithoutForce"
     $directory = $PSScriptRoot

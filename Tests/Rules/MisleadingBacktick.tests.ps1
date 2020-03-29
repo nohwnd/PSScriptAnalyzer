@@ -1,4 +1,4 @@
-Add-Dependency {
+BeforeAll {
     $writeHostName = "PSMisleadingBacktick"
     $directory = $PSScriptRoot
     $violationFilepath = Join-Path $directory 'MisleadingBacktick.ps1'

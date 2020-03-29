@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $reservedCharMessage = "The cmdlet 'Use-#Reserved' uses a reserved char in its name."
     $reservedCharName = "PSReservedCmdletChar"
     $directory = $PSScriptRoot

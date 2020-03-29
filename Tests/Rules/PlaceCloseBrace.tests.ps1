@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $directory = $PSScriptRoot
     $testRootDirectory = Split-Path -Parent $directory
 

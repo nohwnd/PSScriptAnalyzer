@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationName = "PSAvoidUsingDeprecatedManifestFields"
     $directory = $PSScriptRoot
     $violations = Invoke-ScriptAnalyzer "$directory\TestBadModule\TestDeprecatedManifestFields.psd1" | Where-Object {$_.RuleName -eq $violationName}

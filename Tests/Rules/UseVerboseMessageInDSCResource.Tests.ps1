@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "There is no call to Write-Verbose in DSC function 'Test-TargetResource'. If you are using Write-Verbose in a helper function, suppress this rule application."
     $violationName = "PSDSCUseVerboseMessageInDSCResource"
     $directory = $PSScriptRoot

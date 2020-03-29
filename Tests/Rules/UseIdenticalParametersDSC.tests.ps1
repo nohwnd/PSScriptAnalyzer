@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "The Test and Set-TargetResource functions of DSC Resource must have the same parameters."
     $violationName = "PSDSCUseIdenticalParametersForDSC"
     $directory = $PSScriptRoot

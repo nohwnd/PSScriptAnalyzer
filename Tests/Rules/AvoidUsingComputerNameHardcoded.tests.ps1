@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = [regex]::Escape("The ComputerName parameter of cmdlet 'Invoke-Command' is hardcoded. This will expose sensitive information about the system if the script is shared.")
     $violationName = "PSAvoidUsingComputerNameHardcoded"
     $directory = $PSScriptRoot

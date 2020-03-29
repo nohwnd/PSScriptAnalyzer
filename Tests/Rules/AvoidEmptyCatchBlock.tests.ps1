@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "Empty catch block is used. Please use Write-Error or throw statements in catch blocks."
     $violationName = "PSAvoidUsingEmptyCatchBlock"
     $directory = $PSScriptRoot

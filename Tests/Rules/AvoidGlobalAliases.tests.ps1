@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $directory = $PSScriptRoot
     $testRootDirectory = Split-Path -Parent $directory
     Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')

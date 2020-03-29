@@ -1,4 +1,4 @@
-Add-Dependency {
+BeforeAll {
     $violationName = "PSAvoidNullOrEmptyHelpMessageAttribute"
     $violationMessage = "HelpMessage parameter attribute should not be null or empty. To fix a violation of this rule, please set its value to a non-empty string."
     $directory = $PSScriptRoot

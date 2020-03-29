@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = [regex]::Escape('$null should be on the left side of equality comparisons.')
     $violationName = "PSPossibleIncorrectComparisonWithNull"
     $directory = $PSScriptRoot

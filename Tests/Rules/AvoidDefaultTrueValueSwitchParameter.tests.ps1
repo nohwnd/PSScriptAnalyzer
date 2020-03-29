@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "File 'AvoidDefaultTrueValueSwitchParameter.ps1' has a switch parameter default to true."
     $violationName = "PSAvoidDefaultValueSwitchParameter"
     $directory = $PSScriptRoot

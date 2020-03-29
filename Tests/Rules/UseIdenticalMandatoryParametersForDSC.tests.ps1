@@ -1,4 +1,4 @@
-Add-Dependency {
+BeforeAll {
     $directory = $PSScriptRoot
     $ruleName = 'PSDSCUseIdenticalMandatoryParametersForDSC'
     $resourceBasepath = "$directory\DSCResourceModule\DSCResources"

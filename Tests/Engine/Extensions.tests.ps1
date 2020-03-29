@@ -2,7 +2,7 @@ $directory = $PSScriptRoot
 $testRootDirectory = Split-Path -Parent $directory
 Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-Add-Dependency {
+BeforeAll {
     function Get-Extent {
         param($line, $startLineNum, $startColumnNum, $endLineNum, $endColumnNum)
         $scriptPositionType = 'System.Management.Automation.Language.ScriptPosition'

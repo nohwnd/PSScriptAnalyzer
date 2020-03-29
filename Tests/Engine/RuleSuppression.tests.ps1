@@ -1,7 +1,7 @@
 ﻿
 $directory = $PSScriptRoot
 $testRootDirectory = Split-Path -Parent $directory
-Add-Dependency {
+BeforeAll {
     Import-Module (Join-Path $testRootDirectory 'PSScriptAnalyzerTestHelper.psm1')
 
     $violationsUsingScriptDefinition = Invoke-ScriptAnalyzer -ScriptDefinition (Get-Content -Raw "$directory\RuleSuppression.ps1")

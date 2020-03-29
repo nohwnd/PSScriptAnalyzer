@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessage = "() has non-constant members. Invoking non-constant members may cause bugs in the script."
     $violationName = "PSAvoidInvokingEmptyMembers"
     $directory = $PSScriptRoot

@@ -1,4 +1,4 @@
-﻿Add-Dependency {
+﻿BeforeAll {
     $violationMessageOne = "Missing BOM encoding for non-ASCII encoded file 'BOMAbsent_UTF16EncodedScript.ps1'"
     $violationMessageTwo = "Missing BOM encoding for non-ASCII encoded file 'BOMAbsent_UnknownEncodedScript.ps1'"
     $violationName = "PSUseBOMForUnicodeEncodedFile"
