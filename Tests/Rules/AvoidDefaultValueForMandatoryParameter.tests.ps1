@@ -1,4 +1,6 @@
-﻿$ruleName = 'PSAvoidDefaultValueForMandatoryParameter'
+BeforeAll {
+    $ruleName = 'PSAvoidDefaultValueForMandatoryParameter'
+}
 
 Describe "AvoidDefaultValueForMandatoryParameter" {
     Context "When there are violations" {

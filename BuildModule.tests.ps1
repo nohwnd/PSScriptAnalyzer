@@ -3,7 +3,10 @@
 
 # these are tests for the build module
 
-import-module -force "./build.psm1"
+BeforeAll {
+    import-module -force "./build.psm1"
+}
+
 Describe "Build Module Tests" {
     Context "Global.json" {
         BeforeAll {
@@ -75,9 +78,9 @@ Describe "Build Module Tests" {
     }
 
     Context "Receive-DotnetInstallScript" {
-
-        Mock -ModuleName Build Receive-File { new-item -type file TestDrive:/dotnet-install.sh }
         It "Downloads the proper non-Windows file" {
+            Mock -ModuleName Build Receive-File { new-item -type file TestDrive:/dotnet-install.sh }
+
             try {
                 push-location TestDrive:
                 Receive-DotnetInstallScript -platform NonWindows
@@ -88,8 +91,9 @@ Describe "Build Module Tests" {
             }
         }
 
-        Mock -ModuleName Build Receive-File { new-item -type file TestDrive:/dotnet-install.ps1 }
+
         It "Downloads the proper file Windows file" {
+            Mock -ModuleName Build Receive-File { new-item -type file TestDrive:/dotnet-install.ps1 }
             try {
                 push-location TestDrive:
                 Receive-DotnetInstallScript -platform "Windows"

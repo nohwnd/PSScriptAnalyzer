@@ -1,21 +1,23 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-function Get-TypeNameAstFromScript
-{
-    param([string]$Script)
+BeforeAll {
+    function Get-TypeNameAstFromScript
+    {
+        param([string]$Script)
 
-    $ast = [System.Management.Automation.Language.Parser]::ParseInput($Script, [ref]$null, [ref]$null)
-    $typeExpAst = $ast.Find({
-        $args[0] -is [System.Management.Automation.Language.TypeExpressionAst]
-    }, $true)
+        $ast = [System.Management.Automation.Language.Parser]::ParseInput($Script, [ref]$null, [ref]$null)
+        $typeExpAst = $ast.Find({
+            $args[0] -is [System.Management.Automation.Language.TypeExpressionAst]
+        }, $true)
 
-    return $typeExpAst.TypeName
-}
+        return $typeExpAst.TypeName
+    }
 
-function Get-TypeAccelerators
-{
-    [psobject].Assembly.GetType('System.Management.Automation.TypeAccelerators', 'nonpublic')::Get.GetEnumerator()
+    function Get-TypeAccelerators
+    {
+        [psobject].Assembly.GetType('System.Management.Automation.TypeAccelerators', 'nonpublic')::Get.GetEnumerator()
+    }
 }
 
 Describe "Type name serialization" {

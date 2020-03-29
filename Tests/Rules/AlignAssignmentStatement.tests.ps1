@@ -1,17 +1,19 @@
-﻿$directory = $PSScriptRoot
-$testRootDirectory = Split-Path -Parent $directory
+BeforeAll {
+    $directory = $PSScriptRoot
+    $testRootDirectory = Split-Path -Parent $directory
 
-Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+    Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
 
-$ruleConfiguration = @{
-    Enable         = $true
-    CheckHashtable = $true
-}
+    $ruleConfiguration = @{
+        Enable         = $true
+        CheckHashtable = $true
+    }
 
-$settings = @{
-    IncludeRules = @("PSAlignAssignmentStatement")
-    Rules        = @{
-        PSAlignAssignmentStatement = $ruleConfiguration
+    $settings = @{
+        IncludeRules = @("PSAlignAssignmentStatement")
+        Rules        = @{
+            PSAlignAssignmentStatement = $ruleConfiguration
+        }
     }
 }
 

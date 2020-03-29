@@ -1,7 +1,9 @@
-$directory = $PSScriptRoot
-$testRootDirectory = Split-Path -Parent $directory
-$repoRootDirectory = Split-Path -Parent $testRootDirectory
-$ruleDocDirectory = Join-Path $repoRootDirectory RuleDocumentation
+BeforeAll {
+    $directory = $PSScriptRoot
+    $testRootDirectory = Split-Path -Parent $directory
+    $repoRootDirectory = Split-Path -Parent $testRootDirectory
+    $ruleDocDirectory = Join-Path $repoRootDirectory RuleDocumentation
+}
 
 Describe "Validate rule documentation files" {
     BeforeAll {

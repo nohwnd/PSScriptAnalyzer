@@ -1,38 +1,40 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-$script:RuleName = 'PSUseCompatibleSyntax'
+BeforeAll {
+    $script:RuleName = 'PSUseCompatibleSyntax'
 
-$script:ScriptDefinition = @'
-class MyClass
-{
-    [string]$Hi = "Hello"
-
-    [string]GetString()
+    $script:ScriptDefinition = @'
+    class MyClass
     {
-        return $this.Hi
+        [string]$Hi = "Hello"
+
+        [string]GetString()
+        {
+            return $this.Hi
+        }
     }
-}
 
-enum MyEnum
-{
-    One,
-    Two
-}
+    enum MyEnum
+    {
+        One,
+        Two
+    }
 
-$x = [MyClass]::new()
+    $x = [MyClass]::new()
 
-$member = 'Hi'
-Write-Host $x.$member
+    $member = 'Hi'
+    Write-Host $x.$member
 
-Write-Output 'Banana'
+    Write-Output 'Banana'
 
-$method = 'GetString'
-$x.$method()
+    $method = 'GetString'
+    $x.$method()
 
-$enumVal = "One"
-[MyEnum]::$enumVal
+    $enumVal = "One"
+    [MyEnum]::$enumVal
 '@
+}
 
 Describe "PSUseCompatibleSyntax" {
     BeforeAll {

@@ -1,4 +1,6 @@
-﻿$ruleName = "PSAvoidAssignmentToAutomaticVariable"
+BeforeAll {
+    $ruleName = "PSAvoidAssignmentToAutomaticVariable"
+}
 
 Describe "AvoidAssignmentToAutomaticVariables" {
     Context "ReadOnly Variables" {

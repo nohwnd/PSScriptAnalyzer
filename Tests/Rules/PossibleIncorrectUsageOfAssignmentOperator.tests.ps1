@@ -1,4 +1,6 @@
-$ruleName = "PSPossibleIncorrectUsageOfAssignmentOperator"
+BeforeAll {
+    $ruleName = "PSPossibleIncorrectUsageOfAssignmentOperator"
+}
 
 Describe "PossibleIncorrectUsageOfComparisonOperator" {
     Context "When there are violations" {

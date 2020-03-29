@@ -1,9 +1,11 @@
-﻿Import-Module PSScriptAnalyzer
-$violationMessage = "Trap found."
-$violationName = "PSAvoidTrapStatement"
-$directory = $PSScriptRoot
-$violations = Invoke-ScriptAnalyzer $directory\AvoidTrapStatements.ps1 | Where-Object {$_.RuleName -eq $violationName}
-$noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+BeforeAll {
+    Import-Module PSScriptAnalyzer
+    $violationMessage = "Trap found."
+    $violationName = "PSAvoidTrapStatement"
+    $directory = $PSScriptRoot
+    $violations = Invoke-ScriptAnalyzer $directory\AvoidTrapStatements.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+}
 
 Describe "AvoidTrapStatement" {
     Context "When there are violations" {

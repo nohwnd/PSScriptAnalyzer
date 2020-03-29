@@ -1,6 +1,8 @@
-$directory = $PSScriptRoot
-$testRootDirectory = Split-Path -Parent $directory
-Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+BeforeAll {
+    $directory = $PSScriptRoot
+    $testRootDirectory = Split-Path -Parent $directory
+    Import-Module (Join-Path $testRootDirectory "PSScriptAnalyzerTestHelper.psm1")
+}
 
 Describe "Invoke-Formatter Cmdlet" {
     Context "Cmdlet cleans up and has no knock on effect" {

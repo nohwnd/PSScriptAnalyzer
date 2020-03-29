@@ -1,10 +1,12 @@
-﻿Import-Module PSScriptAnalyzer
-$violationMessage = [regex]::Escape("There is no call to Write-Verbose in the function 'Verb-Files'.")
-$violationName = "PSProvideVerboseMessage"
-$directory = $PSScriptRoot
-$violations = Invoke-ScriptAnalyzer $directory\BadCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
-$dscViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $directory\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1 | Where-Object {$_.RuleName -eq $violationName}
-$noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+BeforeAll {
+    Import-Module PSScriptAnalyzer
+    $violationMessage = [regex]::Escape("There is no call to Write-Verbose in the function 'Verb-Files'.")
+    $violationName = "PSProvideVerboseMessage"
+    $directory = $PSScriptRoot
+    $violations = Invoke-ScriptAnalyzer $directory\BadCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $dscViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $directory\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1 | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+}
 
 Describe "ProvideVerboseMessage" {
     Context "When there are violations" {

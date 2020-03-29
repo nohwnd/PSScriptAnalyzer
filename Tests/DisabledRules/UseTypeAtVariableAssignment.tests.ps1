@@ -1,9 +1,11 @@
-﻿Import-Module -Verbose PSScriptAnalyzer
-$violationMessage = [regex]::Escape('Specify type at the assignment of variable $test')
-$violationName = "PSUseTypeAtVariableAssignment"
-$directory = $PSScriptRoot
-$violations = Invoke-ScriptAnalyzer $directory\UseTypeAtVariableAssignment.ps1 | Where-Object {$_.RuleName -eq $violationName}
-$noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+BeforeAll {
+    Import-Module -Verbose PSScriptAnalyzer
+    $violationMessage = [regex]::Escape('Specify type at the assignment of variable $test')
+    $violationName = "PSUseTypeAtVariableAssignment"
+    $directory = $PSScriptRoot
+    $violations = Invoke-ScriptAnalyzer $directory\UseTypeAtVariableAssignment.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\GoodCmdlet.ps1 | Where-Object {$_.RuleName -eq $violationName}
+}
 
 Describe "UseTypeAtVariableAssignment" {
     Context "When there are violations" {

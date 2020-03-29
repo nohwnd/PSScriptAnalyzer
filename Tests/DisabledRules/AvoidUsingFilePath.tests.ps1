@@ -1,15 +1,17 @@
-﻿Import-Module PSScriptAnalyzer
-$violationMessage = @'
-The file path "D:\\Code" of AvoidUsingFilePath.ps1 is rooted. This should be avoided if AvoidUsingFilePath.ps1 is published online
+BeforeAll {
+    Import-Module PSScriptAnalyzer
+    $violationMessage = @'
+    The file path "D:\\Code" of AvoidUsingFilePath.ps1 is rooted. This should be avoided if AvoidUsingFilePath.ps1 is published online
 '@
-$violationUNCMessage = @'
-The file path "\\\\scratch2\\scratch\\" of AvoidUsingFilePath.ps1 is rooted. This should be avoided if AvoidUsingFilePath.ps1 is published online.
+    $violationUNCMessage = @'
+    The file path "\\\\scratch2\\scratch\\" of AvoidUsingFilePath.ps1 is rooted. This should be avoided if AvoidUsingFilePath.ps1 is published online.
 '@
 
-$violationName = "PSAvoidUsingFilePath"
-$directory = $PSScriptRoot
-$violations = Invoke-ScriptAnalyzer $directory\AvoidUsingFilePath.ps1 | Where-Object {$_.RuleName -eq $violationName}
-$noViolations = Invoke-ScriptAnalyzer $directory\AvoidUsingFilePathNoViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $violationName = "PSAvoidUsingFilePath"
+    $directory = $PSScriptRoot
+    $violations = Invoke-ScriptAnalyzer $directory\AvoidUsingFilePath.ps1 | Where-Object {$_.RuleName -eq $violationName}
+    $noViolations = Invoke-ScriptAnalyzer $directory\AvoidUsingFilePathNoViolations.ps1 | Where-Object {$_.RuleName -eq $violationName}
+}
 
 Describe "AvoidUsingFilePath" {
     Context "When there are violations" {
