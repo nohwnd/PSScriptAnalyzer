@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Management.Automation.Runspaces;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
 {
@@ -24,11 +25,13 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
 
         private CommandInvocationIntrinsics invokeCommand;
         private IOutputWriter outputWriter;
-        private Object getCommandLock = new object();
         private readonly static Version minSupportedPSVersion = new Version(3, 0);
         private Dictionary<string, Dictionary<string, object>> ruleArguments;
         private PSVersionTable psVersionTable;
-        private Dictionary<CommandLookupKey, CommandInfo> commandInfoCache;
+
+        private readonly Lazy<CommandInfoCache> _commandInfoCacheLazy;
+        private readonly RunspacePool _runSpacePool;
+        private readonly object _testModuleManifestLock = new object();
 
         #endregion
 
@@ -100,6 +103,12 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         private string[] functionScopes = new string[] { "global:", "local:", "script:", "private:"};
 
         private string[] variableScopes = new string[] { "global:", "local:", "script:", "private:", "variable:", ":"};
+
+        /// <summary>
+        /// Store of command info objects for commands. Memoizes results.
+        /// </summary>
+        private CommandInfoCache CommandInfoCache => _commandInfoCacheLazy.Value;
+
         #endregion
 
         /// <summary>
@@ -107,7 +116,11 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         /// </summary>
         private Helper()
         {
-
+            // There are 5 rules that use the CommandInfo cache but one rule (AvoidAlias) makes parallel queries.
+            // Therefore 10 runspaces was a heuristic measure where no more speed improvement was seen.
+            _runSpacePool = RunspaceFactory.CreateRunspacePool(1, 10);
+            _runSpacePool.Open();
+            _commandInfoCacheLazy = new Lazy<CommandInfoCache>(() => new CommandInfoCache(pssaHelperInstance: this, runspacePool: _runSpacePool));
         }
 
         /// <summary>
@@ -123,7 +136,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         /// </param>
         public Helper(
             CommandInvocationIntrinsics invokeCommand,
-            IOutputWriter outputWriter)
+            IOutputWriter outputWriter) : this()
         {
             this.invokeCommand = invokeCommand;
             this.outputWriter = outputWriter;
@@ -140,10 +153,6 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             KeywordBlockDictionary = new Dictionary<String, List<Tuple<int, int>>>(StringComparer.OrdinalIgnoreCase);
             VariableAnalysisDictionary = new Dictionary<Ast, VariableAnalysis>();
             ruleArguments = new Dictionary<string, Dictionary<string, object>>(StringComparer.OrdinalIgnoreCase);
-            if (commandInfoCache == null)
-            {
-                commandInfoCache = new Dictionary<CommandLookupKey, CommandInfo>();
-            }
 
             IEnumerable<CommandInfo> aliases = this.invokeCommand.GetCommands("*", CommandTypes.Alias, true);
 
@@ -295,35 +304,41 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             errorRecord = null;
             PSModuleInfo psModuleInfo = null;
             Collection<PSObject> psObj = null;
-            var ps = System.Management.Automation.PowerShell.Create();
-            try
+            // Test-ModuleManifest is not thread safe
+            lock (_testModuleManifestLock)
             {
-                ps.AddCommand("Test-ModuleManifest");
-                ps.AddParameter("Path", filePath);
-                ps.AddParameter("WarningAction", ActionPreference.SilentlyContinue);
-                psObj = ps.Invoke();
-            }
-            catch (CmdletInvocationException e)
-            {
-                // Invoking Test-ModuleManifest on a module manifest that doesn't have all the valid keys
-                // throws a NullReferenceException. This is probably a bug in Test-ModuleManifest and hence
-                // we consume it to allow execution of the of this method.
-                if (e.InnerException == null || e.InnerException.GetType() != typeof(System.NullReferenceException))
+                using (var ps = System.Management.Automation.PowerShell.Create())
                 {
-                    throw;
+                    ps.RunspacePool = _runSpacePool;
+                    ps.AddCommand("Test-ModuleManifest")
+                      .AddParameter("Path", filePath)
+                      .AddParameter("WarningAction", ActionPreference.SilentlyContinue);
+                    try
+                    {
+                        psObj = ps.Invoke();
+                    }
+                    catch (CmdletInvocationException e)
+                    {
+                        // Invoking Test-ModuleManifest on a module manifest that doesn't have all the valid keys
+                        // throws a NullReferenceException. This is probably a bug in Test-ModuleManifest and hence
+                        // we consume it to allow execution of the of this method.
+                        if (e.InnerException == null || e.InnerException.GetType() != typeof(System.NullReferenceException))
+                        {
+                            throw;
+                        }
+                    }
+                    if (ps.HadErrors && ps.Streams != null && ps.Streams.Error != null)
+                    {
+                        var errorRecordArr = new ErrorRecord[ps.Streams.Error.Count];
+                        ps.Streams.Error.CopyTo(errorRecordArr, 0);
+                        errorRecord = errorRecordArr;
+                    }
+                    if (psObj != null && psObj.Any() && psObj[0] != null)
+                    {
+                        psModuleInfo = psObj[0].ImmediateBaseObject as PSModuleInfo;
+                    }
                 }
             }
-            if (ps.HadErrors && ps.Streams != null && ps.Streams.Error != null)
-            {
-                var errorRecordArr = new ErrorRecord[ps.Streams.Error.Count];
-                ps.Streams.Error.CopyTo(errorRecordArr, 0);
-                errorRecord = errorRecordArr;
-            }
-            if (psObj != null && psObj.Any() && psObj[0] != null)
-            {
-                psModuleInfo = psObj[0].ImmediateBaseObject as PSModuleInfo;
-            }
-            ps.Dispose();
             return psModuleInfo;
         }
 
@@ -399,7 +414,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             IEnumerable<Ast> cmdAsts = ast.FindAll(item => item is CommandAst
                 && exportFunctionsCmdlet.Contains((item as CommandAst).GetCommandName(), StringComparer.OrdinalIgnoreCase), true);
 
-            CommandInfo exportMM = Helper.Instance.GetCommandInfoLegacy("export-modulemember", CommandTypes.Cmdlet);
+            CommandInfo exportMM = Helper.Instance.GetCommandInfo("export-modulemember", CommandTypes.Cmdlet);
 
             // switch parameters
             IEnumerable<ParameterMetadata> switchParams = (exportMM != null) ? exportMM.Parameters.Values.Where<ParameterMetadata>(pm => pm.SwitchParameter) : Enumerable.Empty<ParameterMetadata>();
@@ -602,18 +617,26 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         }
 
         /// <summary>
-        /// Given a commandast, checks if the command is a Cmdlet.
+        /// Given a commandast, checks if the command is a known cmdlet, function or ExternalScript. 
         /// </summary>
         /// <param name="cmdAst"></param>
         /// <returns></returns>
-        public bool IsCmdlet(CommandAst cmdAst) {
+        public bool IsKnownCmdletFunctionOrExternalScript(CommandAst cmdAst)
+        {
             if (cmdAst == null)
             {
                 return false;
             }
 
             var commandInfo = GetCommandInfo(cmdAst.GetCommandName());
-            return (commandInfo != null && commandInfo.CommandType == System.Management.Automation.CommandTypes.Cmdlet);
+            if (commandInfo == null)
+            {
+                return false;
+            }
+
+            return commandInfo.CommandType == CommandTypes.Cmdlet ||
+                   commandInfo.CommandType == CommandTypes.Alias ||
+                   commandInfo.CommandType == CommandTypes.ExternalScript;
         }
 
         /// <summary>
@@ -650,33 +673,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             return moreThanTwoPositional ? argumentsWithoutProcedingParameters > 2 : argumentsWithoutProcedingParameters > 0;
         }
 
-
         /// <summary>
-        /// Get a CommandInfo object of the given command name
-        /// </summary>
-        /// <returns>Returns null if command does not exists</returns>
-        private CommandInfo GetCommandInfoInternal(string cmdName, CommandTypes? commandType)
-        {
-            using (var ps = System.Management.Automation.PowerShell.Create())
-            {
-                var psCommand = ps.AddCommand("Get-Command")
-                    .AddParameter("Name", cmdName)
-                    .AddParameter("ErrorAction", "SilentlyContinue");
-
-                if(commandType!=null)
-                {
-                    psCommand.AddParameter("CommandType", commandType);
-                }
-
-                var commandInfo = psCommand.Invoke<CommandInfo>()
-                         .FirstOrDefault();
-
-                return commandInfo;
-            }
-        }
-
-        /// <summary>
-
         ///  Legacy method, new callers should use <see cref="GetCommandInfo"/> instead.
         ///  Given a command's name, checks whether it exists. It does not use the passed in CommandTypes parameter, which is a bug.
         ///  But existing method callers are already depending on this behaviour and therefore this could not be simply fixed.
@@ -688,30 +685,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         [Obsolete]
         public CommandInfo GetCommandInfoLegacy(string name, CommandTypes? commandType = null)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return null;
-            }
-
-            // check if it is an alias
-            string cmdletName = Helper.Instance.GetCmdletNameFromAlias(name);
-            if (string.IsNullOrWhiteSpace(cmdletName))
-            {
-                cmdletName = name;
-            }
-
-            var key = new CommandLookupKey(name, commandType);
-            lock (getCommandLock)
-            {
-                if (commandInfoCache.ContainsKey(key))
-                {
-                    return commandInfoCache[key];
-                }
-
-                var commandInfo = GetCommandInfoInternal(cmdletName, commandType);
-                commandInfoCache.Add(key, commandInfo);
-                return commandInfo;
-            }
+            return CommandInfoCache.GetCommandInfoLegacy(commandOrAliasName: name, commandTypes: commandType);
         }
 
         /// <summary>
@@ -722,23 +696,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         /// <returns></returns>
         public CommandInfo GetCommandInfo(string name, CommandTypes? commandType = null)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return null;
-            }
-
-            var key = new CommandLookupKey(name, commandType);
-            lock (getCommandLock)
-            {
-                if (commandInfoCache.ContainsKey(key))
-                {
-                    return commandInfoCache[key];
-                }
-
-                var commandInfo = GetCommandInfoInternal(name, commandType);
-                commandInfoCache.Add(key, commandInfo);
-                return commandInfo;
-            }
+            return CommandInfoCache.GetCommandInfo(name, commandTypes: commandType);
         }
 
         /// <summary>
@@ -1122,8 +1080,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
 
                 if (details != null && classes != null)
                 {
-                    // Get the class that corresponds to the name of the type (if possible)
-                    psClass = classes.FirstOrDefault(item => String.Equals(item.Name, details.Type.FullName, StringComparison.OrdinalIgnoreCase));
+                    // Get the class that corresponds to the name of the type (if possible, the type is not available in the case of a static Singleton)
+                    psClass = classes.FirstOrDefault(item => String.Equals(item.Name, details.Type?.FullName, StringComparison.OrdinalIgnoreCase));
                 }
 
 #endif
@@ -1419,7 +1377,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                 while (startRecord < diagnostics.Count
                     // && diagnostics[startRecord].Extent.StartOffset < ruleSuppression.StartOffset)
                     // && diagnostics[startRecord].Extent.StartLineNumber < ruleSuppression.st)
-                    && offsetArr[startRecord].Item1 < ruleSuppression.StartOffset)
+                    && offsetArr[startRecord] != null && offsetArr[startRecord].Item1 < ruleSuppression.StartOffset)
                 {
                     startRecord += 1;
                 }
@@ -1433,7 +1391,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                     var curOffset = offsetArr[recordIndex];
 
                     //if (record.Extent.EndOffset > ruleSuppression.EndOffset)
-                    if (curOffset.Item2 > ruleSuppression.EndOffset)
+                    if (curOffset != null && curOffset.Item2 > ruleSuppression.EndOffset)
                     {
                         break;
                     }
@@ -1489,6 +1447,10 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             for (int k = 0; k < diagnostics.Count; k++)
             {
                 var ext = diagnostics[k].Extent;
+                if (ext == null)
+                {
+                    continue;
+                }
                 if (ext.StartOffset == 0 && ext.EndOffset == 0)
                 {
                     // check if line and column number correspond to 0 offsets

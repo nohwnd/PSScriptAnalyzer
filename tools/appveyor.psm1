@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 
 # Implements the AppVeyor 'install' step and installs the required versions of Pester, platyPS and the .Net Core SDK if needed.
 function Invoke-AppVeyorInstall {
-    $requiredPesterVersion = '4.4.1'
+    $requiredPesterVersion = '4.4.4'
     $pester = Get-Module Pester -ListAvailable | Where-Object { $_.Version -eq $requiredPesterVersion }
     if ($null -eq $pester) {
         if ($null -eq (Get-Module -ListAvailable PowershellGet)) {
@@ -20,7 +20,7 @@ function Invoke-AppVeyorInstall {
         }
     }
 
-    $platyPSVersion = '0.12.0'
+    $platyPSVersion = '0.13.0'
     if ($null -eq (Get-Module -ListAvailable PowershellGet)) {
         # WMF 4 image build
         Write-Verbose -Verbose "Installing platyPS via nuget"
@@ -31,36 +31,11 @@ function Invoke-AppVeyorInstall {
         Install-Module -Name platyPS -Force -Scope CurrentUser -RequiredVersion $platyPSVersion
     }
 
-    # the legacy WMF4 image only has the old preview SDKs of dotnet
-    $globalDotJson = Get-Content (Join-Path $PSScriptRoot '..\global.json') -Raw | ConvertFrom-Json
-    $requiredDotNetCoreSDKVersion = $globalDotJson.sdk.version
-    if ($PSVersionTable.PSVersion.Major -gt 4) {
-        $requiredDotNetCoreSDKVersionPresent = (dotnet --list-sdks) -match $requiredDotNetCoreSDKVersion
-    }
-    else {
-        # WMF 4 image has old SDK that does not have --list-sdks parameter
-        $requiredDotNetCoreSDKVersionPresent = (dotnet --version).StartsWith($requiredDotNetCoreSDKVersion)
-    }
-    if (-not $requiredDotNetCoreSDKVersionPresent) {
-        Write-Verbose -Verbose "Installing required .Net CORE SDK $requiredDotNetCoreSDKVersion"
-        $originalSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
-        try {
-            [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-            if ($IsLinux -or $isMacOS) {
-                Invoke-WebRequest 'https://dot.net/v1/dotnet-install.sh' -OutFile dotnet-install.sh
-                bash dotnet-install.sh --version $requiredDotNetCoreSDKVersion
-                [System.Environment]::SetEnvironmentVariable('PATH', "/home/appveyor/.dotnet$([System.IO.Path]::PathSeparator)$PATH")
-            }
-            else {
-                Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile dotnet-install.ps1
-                .\dotnet-install.ps1 -Version $requiredDotNetCoreSDKVersion
-            }
-        }
-        finally {
-            [Net.ServicePointManager]::SecurityProtocol = $originalSecurityProtocol
-            Remove-Item .\dotnet-install.*
-        }
-    }
+    # the build script sorts out the problems of WMF4 and earlier versions of dotnet CLI
+    Write-Verbose -Verbose "Installing required .Net CORE SDK"
+    Write-Verbose "& $buildScriptDir/build.ps1 -bootstrap"
+    $buildScriptDir = (Resolve-Path "$PSScriptRoot/..").Path
+    & "$buildScriptDir/build.ps1" -bootstrap
 }
 
 # Implements AppVeyor 'test_script' step
@@ -71,14 +46,46 @@ function Invoke-AppveyorTest {
         $CheckoutPath
     )
 
+    # enforce the language to utf-8 to avoid issues
+    $env:LANG = "en_US.UTF-8"
     Write-Verbose -Verbose ("Running tests on PowerShell version " + $PSVersionTable.PSVersion)
+    Write-Verbose -Verbose "Language set to '${env:LANG}'"
 
-    $modulePath = $env:PSModulePath.Split([System.IO.Path]::PathSeparator) | Where-Object { Test-Path $_} | Select-Object -First 1
-    Copy-Item "${CheckoutPath}\out\PSScriptAnalyzer" "$modulePath\" -Recurse -Force
-    $testResultsFile = ".\TestResults.xml"
-    $testScripts = "${CheckoutPath}\Tests\Engine","${CheckoutPath}\Tests\Rules","${CheckoutPath}\Tests\Documentation"
-    $testResults = Invoke-Pester -Script $testScripts -OutputFormat NUnitXml -OutputFile $testResultsFile -PassThru
-    (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/${env:APPVEYOR_JOB_ID}", (Resolve-Path $testResultsFile))
+    # set up env:PSModulePath to the build location, don't copy it to the "normal place"
+    $analyzerVersion = ([xml](Get-Content "${CheckoutPath}\Engine\Engine.csproj")).SelectSingleNode(".//VersionPrefix")."#text".Trim()
+    $majorVersion = ([System.Version]$analyzerVersion).Major
+    $psMajorVersion = $PSVersionTable.PSVersion.Major
+
+    if ( $psMajorVersion -lt 5 ) {
+        $versionModuleDir = "${CheckoutPath}\out\PSScriptAnalyzer\${analyzerVersion}"
+        $renameTarget = "${CheckoutPath}\out\PSScriptAnalyzer\PSScriptAnalyzer"
+        Rename-Item "${versionModuleDir}" "${renameTarget}"
+        $moduleDir = "${CheckoutPath}\out\PSScriptAnalyzer"
+    }
+    else{
+        $moduleDir = "${CheckoutPath}\out"
+    }
+
+    $env:PSModulePath = "${moduleDir}","${env:PSModulePath}" -join [System.IO.Path]::PathSeparator
+    Write-Verbose -Verbose "module path: ${env:PSModulePath}"
+
+    # Set up testing assets
+    $testResultsPath = Join-Path ${CheckoutPath} TestResults.xml
+    $testScripts = "${CheckoutPath}\Tests\Engine","${CheckoutPath}\Tests\Rules","${CheckoutPath}\Tests\Documentation","${CheckoutPath}\PSCompatibilityCollector\Tests"
+
+    # Change culture to Turkish to test that PSSA works well with different locales
+    [System.Threading.Thread]::CurrentThread.CurrentCulture = [cultureinfo]::CreateSpecificCulture('tr-TR')
+    [System.Threading.Thread]::CurrentThread.CurrentUICulture = [cultureinfo]::CreateSpecificCulture('tr-TR')
+
+    # Run all tests
+    $testResults = Invoke-Pester -Script $testScripts -OutputFormat NUnitXml -OutputFile $testResultsPath -PassThru
+
+    # Upload the test results
+    $uploadUrl = "https://ci.appveyor.com/api/testresults/nunit/${env:APPVEYOR_JOB_ID}"
+    Write-Verbose -Verbose "Uploading test results '$testResultsPath' to '${uploadUrl}'"
+    [byte[]]$response = (New-Object 'System.Net.WebClient').UploadFile("$uploadUrl" , $testResultsPath)
+
+    # Throw an error if any tests failed
     if ($testResults.FailedCount -gt 0) {
         throw "$($testResults.FailedCount) tests failed."
     }
@@ -91,6 +98,8 @@ function Invoke-AppveyorFinish {
     Add-Type -AssemblyName 'System.IO.Compression.FileSystem'
     [System.IO.Compression.ZipFile]::CreateFromDirectory((Join-Path $pwd 'out'), $zipFile)
     @(
+        # add test results as an artifact
+        (Get-ChildItem TestResults.xml)
         # You can add other artifacts here
         (Get-ChildItem $zipFile)
     ) | ForEach-Object { Push-AppveyorArtifact $_.FullName }

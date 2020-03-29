@@ -11,7 +11,22 @@ Describe "Resolve DSC Resource Dependency" {
     }
 
     BeforeAll {
-        $SavedPSModulePath = $env:PSModulePath
+        $skipTest = $false # Test that require DSC to be installed
+        if ($testingLibararyUsage -or ($PSversionTable.PSVersion -lt [Version]'5.0.0'))
+        {
+            $skipTest = $true
+            return
+        }
+        if ($IsLinux -or $IsMacOS)
+        {
+            $dscIsInstalled = Test-Path /etc/opt/omi/conf/dsc/configuration
+            if (-not $dscIsInstalled)
+            {
+                $skipTest = $true
+            }
+        }
+
+        $savedPSModulePath = $env:PSModulePath
         $violationFileName = 'MissingDSCResource.ps1'
         $violationFilePath = Join-Path $directory $violationFileName
         $testRootDirectory = Split-Path -Parent $directory
@@ -27,11 +42,16 @@ Describe "Resolve DSC Resource Dependency" {
                 $newEnv[$index].Value | Should -Be $oldEnv[$index].Value
             }
         }
+
+        Function Get-LocalAppDataFolder
+        {
+            if ($IsLinux -or $IsMacOS) { $env:HOME } else { $env:LOCALAPPDATA }
+        }
     }
 
     AfterAll {
         if ( $skipTest ) { return }
-        $env:PSModulePath = $SavedPSModulePath
+        $env:PSModulePath = $savedPSModulePath
     }
 
     It "pester runs before all before the first test right now, so this forces it to run here" {
@@ -41,11 +61,16 @@ Describe "Resolve DSC Resource Dependency" {
     Context "Module handler class" {
         if ( $skipTest ) { return }
         BeforeAll {
+            if ($PSversionTable.PSVersion -lt [Version]'5.0.0') { return }
             $moduleHandlerType = [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.ModuleDependencyHandler]
             $oldEnvVars = Get-Item Env:\* | Sort-Object -Property Key
-            $oldPSModulePath = $env:PSModulePath
+            $savedPSModulePath = $env:PSModulePath
         }
-        It "Sets defaults correctly" -skip:$skipTest {
+        AfterAll {
+            if ( $skipTest ) { return }
+            $env:PSModulePath = $savedPSModulePath
+        }
+        It "Sets defaults correctly" -Skip:($PSversionTable.PSVersion -lt [Version]'5.0.0') {
             $rsp = [runspacefactory]::CreateRunspace()
             $rsp.Open()
             $depHandler = $moduleHandlerType::new($rsp)
@@ -53,8 +78,7 @@ Describe "Resolve DSC Resource Dependency" {
             $expectedPath = [System.IO.Path]::GetTempPath()
             $depHandler.TempPath | Should -Be $expectedPath
 
-            $expectedLocalAppDataPath = $env:LOCALAPPDATA
-            $depHandler.LocalAppDataPath | Should -Be $expectedLocalAppDataPath
+            $depHandler.LocalAppDataPath | Should -Be (Get-LocalAppDataFolder)
 
             $expectedModuleRepository = "PSGallery"
             $depHandler.ModuleRepository | Should -Be $expectedModuleRepository
@@ -62,22 +86,22 @@ Describe "Resolve DSC Resource Dependency" {
             $expectedPssaAppDataPath = Join-Path $depHandler.LocalAppDataPath "PSScriptAnalyzer"
             $depHandler.PSSAAppDataPath | Should -Be $expectedPssaAppDataPath
 
-            $expectedPSModulePath = $oldPSModulePath + [System.IO.Path]::PathSeparator + $depHandler.TempModulePath
+            $expectedPSModulePath = $savedPSModulePath + [System.IO.Path]::PathSeparator + $depHandler.TempModulePath
             $env:PSModulePath | Should -Be $expectedPSModulePath
 
             $depHandler.Dispose()
             $rsp.Dispose()
         }
 
-        It "Keeps the environment variables unchanged" -skip:$skipTest {
+        It "Keeps the environment variables unchanged" -Skip:($PSversionTable.PSVersion -lt [Version]'5.0.0') {
             Test-EnvironmentVariables($oldEnvVars)
         }
 
-        It "Throws if runspace is null" -skip:$skipTest {
+        It "Throws if runspace is null" -Skip:($PSversionTable.PSVersion -lt [Version]'5.0.0') {
             {$moduleHandlerType::new($null)} | Should -Throw
         }
 
-        It "Throws if runspace is not opened" -skip:$skipTest {
+        It "Throws if runspace is not opened" -Skip:($PSversionTable.PSVersion -lt [Version]'5.0.0') {
             $rsp = [runspacefactory]::CreateRunspace()
             {$moduleHandlerType::new($rsp)} | Should -Throw
             $rsp.Dispose()
@@ -102,6 +126,22 @@ Describe "Resolve DSC Resource Dependency" {
 {Configuration SomeConfiguration
 {
     Import-DscResource -ModuleName SomeDscModule1 -ModuleVersion 1.2.3.4
+}}
+"@
+            $tokens = $null
+            $parseError = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseInput($sb, [ref]$tokens, [ref]$parseError)
+            $moduleVersion = $null
+            $resultModuleNames = $moduleHandlerType::GetModuleNameFromErrorExtent($parseError[0], $ast, [ref]$moduleVersion).ToArray()
+            $resultModuleNames[0] | Should -Be 'SomeDscModule1'
+            $moduleVersion | Should -Be ([version]'1.2.3.4')
+        }
+
+        It "Extracts 1 module name with version using HashTable syntax" -skip:$skipTest {
+            $sb = @"
+{Configuration SomeConfiguration
+{
+    Import-DscResource -ModuleName (@{ModuleName="SomeDscModule1";ModuleVersion="1.2.3.4"})
 }}
 "@
             $tokens = $null
@@ -147,8 +187,12 @@ Describe "Resolve DSC Resource Dependency" {
 
     Context "Invoke-ScriptAnalyzer without switch" {
         It "Has parse errors" -skip:$skipTest {
-            $dr = Invoke-ScriptAnalyzer -Path $violationFilePath -ErrorVariable parseErrors -ErrorAction SilentlyContinue
-            $parseErrors.Count | Should -Be 1
+            $dr = Invoke-ScriptAnalyzer -Path $violationFilePath -ErrorVariable analyzerErrors -ErrorAction SilentlyContinue
+            $analyzerErrors.Count | Should -Be 0
+
+            $dr |
+                Where-Object { $_.Severity -eq "ParseError" } |
+                Get-Count | Should -Be 1
         }
     }
 
@@ -160,20 +204,23 @@ Describe "Resolve DSC Resource Dependency" {
             $modulePath = "$(Split-Path $directory)\Rules\DSCResourceModule\DSCResources\$moduleName"
 
             # Save the current environment variables
-            $oldLocalAppDataPath = $env:LOCALAPPDATA
+            $oldLocalAppDataPath = Get-LocalAppDataFolder
             $oldTempPath = $env:TEMP
-            $oldPSModulePath = $env:PSModulePath
+            $savedPSModulePath = $env:PSModulePath
 
             # set the environment variables
-            $tempPath = Join-Path $oldTempPath ([guid]::NewGUID()).ToString()
+            $tempPath = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGUID()).ToString()
             $newLocalAppDataPath = Join-Path $tempPath "LocalAppData"
             $newTempPath = Join-Path $tempPath "Temp"
-            $env:LOCALAPPDATA = $newLocalAppDataPath
-            $env:TEMP = $newTempPath
+            if (-not ($IsLinux -or $IsMacOS))
+            {
+                $env:LOCALAPPDATA = $newLocalAppDataPath
+                $env:TEMP = $newTempPath
+            }
 
             # create the temporary directories
-            New-Item -Type Directory -Path $newLocalAppDataPath
-            New-Item -Type Directory -Path $newTempPath
+            New-Item -Type Directory -Path $newLocalAppDataPath -force
+            New-Item -Type Directory -Path $newTempPath -force
 
             # create and dispose module dependency handler object
             # to setup the temporary module
@@ -190,33 +237,46 @@ Describe "Resolve DSC Resource Dependency" {
             Copy-Item -Recurse -Path $modulePath -Destination $tempModulePath
         }
 
-        It "Doesn't have parse errors" -skip:$skipTest {
-            # invoke script analyzer
-            $dr = Invoke-ScriptAnalyzer -Path $violationFilePath -ErrorVariable parseErrors -ErrorAction SilentlyContinue
-            $dr.Count | Should -Be 0
+        AfterAll {
+            if ( $skipTest ) { return }
+            $env:PSModulePath = $savedPSModulePath
+        }
+
+        It "has a single parse error" -skip:$skipTest {
+            $dr = Invoke-ScriptAnalyzer -Path $violationFilePath -ErrorVariable analyzerErrors -ErrorAction SilentlyContinue
+            $analyzerErrors.Count | Should -Be 0
+            $dr |
+                Where-Object { $_.Severity -eq "ParseError" } |
+                Get-Count | Should -Be 1
         }
 
         It "Keeps PSModulePath unchanged before and after invocation" -skip:$skipTest {
-            $dr = Invoke-ScriptAnalyzer -Path $violationFilePath -ErrorVariable parseErrors -ErrorAction SilentlyContinue
-            $env:PSModulePath | Should -Be $oldPSModulePath
+            Invoke-ScriptAnalyzer -Path $violationFilePath -ErrorVariable parseErrors -ErrorAction SilentlyContinue
+            $env:PSModulePath | Should -Be $savedPSModulePath
         }
 
-        Add-FreeFloatingCode -ScriptBlock {
-            if (!$skipTest)
-            {
-                $env:LOCALAPPDATA = $oldLocalAppDataPath
-                $env:TEMP = $oldTempPath
-                Remove-Item -Recurse -Path $tempModulePath -Force
-                Remove-Item -Recurse -Path $tempPath -Force
+        Describe "Setup" {
+            BeforeAll {
+                if (!$skipTest)
+                {
+                    if ($IsLinux -or $IsMacOS)
+                    {
+                        $env:HOME = $oldLocalAppDataPath
+                        # On Linux [System.IO.Path]::GetTempPath() does not use the TEMP env variable unlike on Windows
+                    }
+                    else
+                    {
+                        $env:LOCALAPPDATA = $oldLocalAppDataPath
+                        $env:TEMP = $oldTempPath
+                    }
+                    Remove-Item -Recurse -Path $tempModulePath -Force
+                    Remove-Item -Recurse -Path $tempPath -Force
+                }
+            }
+
+            It "Keeps the environment variables unchanged" -skip:$skipTest {
+                Test-EnvironmentVariables($oldEnvVars)
             }
         }
-
-        It "Keeps the environment variables unchanged" -skip:$skipTest {
-            Test-EnvironmentVariables($oldEnvVars)
-        }
-    }
-
-    It "pester runs after all after the first test right now, so this forces it to run here" {
-
     }
 }

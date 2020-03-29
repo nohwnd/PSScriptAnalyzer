@@ -160,6 +160,59 @@ Describe "Test importing correct customized rules" {
             $violations[0].SuggestedCorrections.Text   | Should -Be 'text'
             $violations[0].SuggestedCorrections.File   | Should -Be 'filePath'
             $violations[0].SuggestedCorrections.Description   | Should -Be 'description'
+		}
+
+        It "can suppress custom rule" {
+			$script = "[Diagnostics.CodeAnalysis.SuppressMessageAttribute('samplerule\$measure','')]Param()"
+			$testScriptPath = "TestDrive:\SuppressedCustomRule.ps1"
+			Set-Content -Path $testScriptPath -Value $script
+
+            $customizedRulePath = Invoke-ScriptAnalyzer -Path $testScriptPath -CustomizedRulePath $directory\samplerule\samplerule.psm1 |
+				Where-Object { $_.Message -eq $message }
+
+            $customizedRulePath.Count | Should -Be 0
+		}
+
+        It "can suppress custom rule with rule name expression '<RuleNameExpression>'" -TestCases @(
+            @{RuleNameExpression = '$MyInvocation.MyCommand.Name'; RuleName = 'WarningAboutDoSomething' }
+            @{RuleNameExpression = '$MyInvocation.InvocationName'; RuleName = 'MyCustomRule\WarningAboutDoSomething' }
+            @{RuleNameExpression = "'MyRuleName'"; RuleName = 'MyRuleName' }
+        ) {
+            Param($RuleNameExpression, $RuleName)
+
+            $script = @"
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute('$RuleName', '')]
+			Param()
+			Invoke-Something
+"@
+            $customRuleContent = @'
+			function WarningAboutDoSomething {
+				param (
+					[System.Management.Automation.Language.CommandAst]$ast
+				)
+
+				if ($ast.GetCommandName() -eq 'Invoke-Something') {
+					New-Object -Typename 'Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord' `
+								-ArgumentList 'This is help',$ast.Extent,REPLACE_WITH_RULE_NAME_EXPRESSION,Warning,$ast.Extent.File,$null,$null
+				}
+			}
+'@
+            $customRuleContent = $customRuleContent.Replace('REPLACE_WITH_RULE_NAME_EXPRESSION', $RuleNameExpression)
+            $testScriptPath = "TestDrive:\SuppressedCustomRule.ps1"
+            Set-Content -Path $testScriptPath -Value $script
+            $customRuleScriptPath = Join-Path $TestDrive 'MyCustomRule.psm1'
+			Set-Content -Path $customRuleScriptPath -Value $customRuleContent
+			$violationsWithoutSuppresion = Invoke-ScriptAnalyzer -ScriptDefinition 'Invoke-Something' -CustomRulePath $customRuleScriptPath
+			$violationsWithoutSuppresion.Count | Should -Be 1
+            $violations = Invoke-ScriptAnalyzer -Path $testScriptPath -CustomRulePath $customRuleScriptPath
+			$violations.Count | Should -Be 0
+			$violationsWithIncludeDefaultRules = Invoke-ScriptAnalyzer -Path $testScriptPath -CustomRulePath $customRuleScriptPath -IncludeDefaultRules
+            $violationsWithIncludeDefaultRules.Count | Should -Be 0
+        }
+
+        It "will set RuleSuppressionID" {
+            $violations = Invoke-ScriptAnalyzer $directory\TestScript.ps1 -CustomizedRulePath $directory\samplerule
+            $violations[0].RuleSuppressionID   | Should -Be "MyRuleSuppressionID"
         }
 
         if (!$testingLibraryUsage)

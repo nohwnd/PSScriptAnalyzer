@@ -4,12 +4,12 @@
 #if !PSV3
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 {
@@ -75,7 +75,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 #if CORECLR
                 localAppdataPath
                     = string.IsNullOrWhiteSpace(value)
-                    ? Environment.GetEnvironmentVariable("LOCALAPPDATA")
+                    ? Environment.GetEnvironmentVariable(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "LOCALAPPDATA" : "HOME") //Environment.GetEnvironmentVariable("LOCALAPPDATA")
                     : value;
 #else
                 localAppdataPath
@@ -215,7 +215,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
         private void SetupPSModulePath()
         {
             oldPSModulePath = Environment.GetEnvironmentVariable("PSModulePath");
-            curPSModulePath = oldPSModulePath + ";" + tempModulePath;
+            curPSModulePath = oldPSModulePath + Path.PathSeparator + tempModulePath;
 #if CORECLR
             Environment.SetEnvironmentVariable("PSModulePath", curPSModulePath);
 #else
@@ -271,7 +271,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
                         ? "PSScriptAnalyzer"
                         : pssaAppDataPath);
 
-            modulesFound = new Dictionary<string, PSObject>();            
+            modulesFound = new Dictionary<string, PSObject>(StringComparer.OrdinalIgnoreCase);            
 
             // TODO Add PSSA Version in the path
             symLinkPath = Path.Combine(pssaAppDataPath, symLinkName);
@@ -461,8 +461,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
             var paramValAst = dynamicKywdAst.CommandElements[positionOfModuleNameParamter];
 
             // import-dscresource -ModuleName module1
-            var paramValStrConstExprAst = paramValAst as StringConstantExpressionAst;
-            if (paramValStrConstExprAst != null)
+            if (paramValAst is StringConstantExpressionAst paramValStrConstExprAst)
             {                
                 modules.Add(paramValStrConstExprAst.Value);
 
@@ -470,15 +469,30 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
                 var versionParameterAst = dynamicKywdAst.CommandElements[positionOfModuleVersionParameter] as StringConstantExpressionAst;
                 if (versionParameterAst != null)
                 {
-                    Version.TryParse(versionParameterAst.Value, out Version version); // ignore return value since a module version of null means no version
-                    moduleVersion = version;
+                    Version.TryParse(versionParameterAst.Value, out moduleVersion); // ignore return value since a module version of null means no version
                 }
                 return modules;
             }
-            
+
+            // Import-DscResource –ModuleName @{ModuleName="module1";ModuleVersion="1.2.3.4"}
+            //var paramValAstHashtableAst = paramValAst.Find(oneAst => oneAst is HashtableAst, true) as HashtableAst;
+            if (paramValAst.Find(oneAst => oneAst is HashtableAst, true) is HashtableAst paramValAstHashtableAst)
+            {
+                var moduleNameTuple = paramValAstHashtableAst.KeyValuePairs.SingleOrDefault(x => x.Item1.Extent.Text.Equals("ModuleName"));
+                var moduleName = moduleNameTuple.Item2.Find(astt => astt is StringConstantExpressionAst, true) as StringConstantExpressionAst;
+                if (moduleName == null)
+                {
+                    return null;
+                }
+                modules.Add(moduleName.Value);
+                var moduleVersionTuple = paramValAstHashtableAst.KeyValuePairs.SingleOrDefault(x => x.Item1.Extent.Text.Equals("ModuleVersion"));
+                var moduleVersionAst = moduleVersionTuple.Item2.Find(astt => astt is StringConstantExpressionAst, true) as StringConstantExpressionAst;
+                Version.TryParse(moduleVersionAst.Value, out moduleVersion);
+                return modules;
+            }
+
             // import-dscresource -ModuleName module1,module2
-            var paramValArrLtrlAst = paramValAst as ArrayLiteralAst;
-            if (paramValArrLtrlAst != null)
+            if (paramValAst is ArrayLiteralAst paramValArrLtrlAst)
             {
                 foreach (var elem in paramValArrLtrlAst.Elements)
                 {

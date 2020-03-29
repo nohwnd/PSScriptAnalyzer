@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>1.17.1</VersionPrefix>
+    <VersionPrefix>1.18.1</VersionPrefix>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <AssemblyName>Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules</AssemblyName>
     <PackageId>Rules</PackageId>
@@ -10,7 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.csproj" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Microsoft.Management.Infrastructure" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
@@ -41,14 +42,13 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net452' ">
-    <PackageReference Include="Microsoft.Management.Infrastructure" Version="1.0.0-alpha*" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.5.1" />
+    <Compile Remove="UseSingularNouns.cs" />
   </ItemGroup>
   
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Management.Infrastructure" Version="1.0.0" />
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.5.0" />
-    <Compile Remove="UseSingularNouns.cs" />
+  <ItemGroup>
+    <ProjectReference Include="..\PSCompatibilityCollector\Microsoft.PowerShell.CrossCompatibility\Microsoft.PowerShell.CrossCompatibility.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'PSV3Release' ">
@@ -56,6 +56,14 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'PSV4Release' ">
+    <DefineConstants>$(DefineConstants);PSV3;PSV4</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'PSV3Debug' ">
+    <DefineConstants>$(DefineConstants);PSV3</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'PSV4Debug' ">
     <DefineConstants>$(DefineConstants);PSV3;PSV4</DefineConstants>
   </PropertyGroup>
 

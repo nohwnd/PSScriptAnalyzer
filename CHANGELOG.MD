@@ -1,4 +1,154 @@
-﻿## [1.17.1](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.17.1) - 2018-06-06
+﻿# CHANGELOG
+
+## [1.18.1](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.18.1) - 2019-06-12
+
+### Fixes
+
+- Formatter
+  - UseCorrectCasing
+    - Do not use alias name as key for command info cache to fix the problem where UseCorrectCasing corrects aliases (#1216) (by @bergmeister)
+    - Fix wildcard lookups for command lookup and do not append .exe for applications on Windows (#1210) (by @bergmeister)
+    - Do not correct applications or script paths at all (#1255) (by @bergmeister)
+  - Prevent PSCloseBrace crash if hashtable definition start on first token and there is a PSCloseBrace violation (#1235) (by @bergmeister)
+  - PipelineIndentationStyle
+    - Fix formatting regression in 1.18.0 whereby single-line pipeline reduces indentation level incorrectly (#1191) (by @bergmeister)
+    - Make IncreaseIndentationForFirstPipeline the true default option for PipelineIndentationStyle option (#1218) (by @bergmeister)
+
+- Compatibility Rules
+  - Fix UseCompatibleSyntax class error message (#1215) (by @rjmholt)
+  - Convert compatibility module to binary module, fix compatibility with Azure environments (#1212) (by @rjmholt)
+  - Prevent .NET members with names differing only by case from crashing the compatibility profiler (#1195) (by @rjmholt)
+  - Fix compatibility profile query API so that aliases referring to other modules appear (#1194) (by @rjmholt)
+  
+- DSC
+  - Instead of using the first cimClass and then having no superClass, use the first cimClass that has a non-null superClass (#1200) (by @bergmeister, thanks to @ykuijs! for the great collaboration)
+  - Make `-SaveDscDependency` work on Linux (#1246) (by @bergmeister)
+  
+- Enable suppression of custom rules when used together with `-IncludeDefaultRules` to allow all possible scenarios from 1.17.1 and 1.18.0. This removes also the check if the rule name in the suppression attribute can be found because this check is technically not possible in all scenarios (#1245) (by @bergmeister)
+- Fix NullReferenceException for class type (#1182) (by @bergmeister)
+
+### Performance
+
+2 improvements were made that make cold runs of ScriptAnalyzer twice as fast compared to `1.18.0`
+
+- Speedup cold runs by using a runspace pool (#1178) (by @bergmeister)
+- Fix logic errors in AvoidAlias rule to halve the amount of necessary calls to `Get-Command`, making the rule twice (#1251) (by @JamesWTruher)
+
+### General Improvements
+
+- Add ImplementingType to RuleInfo object for better settings file validation and settings template file creation (#1250) (by @JamesWTruher)
+- Fix typo in AvoidDefaultValueForMandatoryParameterError resource string (#1233) (Thanks @tnieto88!)
+- Change module root find function in CompatibilityRule (#1196) (by @rjmholt)
+
+### Documentation
+
+- Update PossibleIncorrectComparisonWithNull documentation with better example (#1244, #1226 and #1220) (by @bergmeister and thanks to @PrzemyslawKlys and @lesterw1!)
+- Compatibility rules documentation fixes (#1229, #1204, #1225 and #1221) (by @rjmholt, @bergmeister and thanks @skycommand!)
+- Update README.md on supported PowerShell Core version and update Docker examples (#1188) (Thanks @PrzemyslawKlys!)
+- Update UseConsistentWhitespace documentation to show all options (#1185) (by @bergmeister)
+
+### Build
+
+- Make it possible to build ScriptAnalyzer with PowerShell7 (#1256) (by @bergmeister)
+- Update signing file for versioned location of module (#1253) (by @JamesWTruher)
+- Bump version to 1.18.1 (#1248) (by @bergmeister)
+- Change build script to install into a versioned directory (#1247) (by @JamesWTruher)
+- Remove code for deprecated rules that is not used any more (#1232) (by @bergmeister)
+- Speedup CI builds by skipping the first time initialization of the bootstrapped dotnet CLI (#1211) (by @bergmeister)
+- Add suppression of warning for MS policy (#1205) (by @JamesWTruher)
+- Change logic for copying profiles into the 'install' directory (#1197) (by @JamesWTruher)
+
+## [1.18.0](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.18.0) - 2019-03-21
+
+### Breaking Changes
+
+- Minimum required version of `PowerShell Core` was raised from `6.0.2` to `6.1.0` due to `6.0` having reached the end of its support life-cycle. (#1165)
+- Updated used version of `Newtonsoft.Json` to `11.0.2`. (#1165) (by @bergmeister)
+- Command data files of PowerShell `6.0` were removed. Updated files for PowerShell `6.1` were added. This means that users that have customized the `UseCompatibleCmdlets` rule, need to either adapt the version string as per rule documentation or can alternatively copy in the old command data files into the `Settings` installation folder (#1075) (by @bergmeister)
+- The minimum required runtime of the full .Net Framework was raised from `4.5.1` to `4.5.2` as `4.5.1` is not supported any more. If the OS is patched then Windows update will have ensured that the newer runtime patch is available. (#1108) (by @bergmeister)
+- Emit parsing errors as diagnostic records (#1130) (by @JamesWTruher)
+
+### Formatter Rules
+
+- Add `UseCorrectCasing` formatting rule for cmdlet/function name (#1117) (by @bergmeister)
+- Fix `PSUseConsistentIndentationRule` to handle pipes correctly when there is a multi-line statement after a pipe and add `PipelineIndentation` customisation option for it (#1102) (by @bergmeister)
+- Add `CheckInnerBrace` and `CheckPipe` options to `PSUseConsistentWhitespace` (#1092) (by @bergmeister)
+
+### Script Analysis Rules
+
+- Add command data file for PowerShell `2.0` (#1091) (by @bergmeister)
+- Add command data files of PowerShell `6.1.0` (#1075) (by @bergmeister)
+- New PowerShell compatibility rules: `UseCompatibleCommands`, `UseCompatibleSyntax` and `UseCompatibleTypes` (#1156, #1133, #1176 and #1179) (by @rjmholt and @JamesWTruher)
+- Make `PossibleIncorrectComparisonWithNull` rule return a `SuggestCorrection` for auto-fixes in VS-Code or via the -Fix switch (#1115) (by @bergmeister)
+- Make UseCompatibleCmdlets not throw if default reference desktop-5.1.14393.206-windows is specified in the list of platforms and use core-6.1.0-windows as an alternative default reference (#1043 and #1075) (by @bergmeister)
+
+### Custom Rules
+
+- Translate `RuleSuppressionID` for custom rules as well (#1144) (by @bergmeister)
+- Allow for suppression of custom rules (#1145) (by @bergmeister)
+
+### DSC
+
+- Add support for Hashtable syntax of `Import-DscRessource` for `-SaveDscDependency` switch (#1138) (by @bergmeister)
+- Take module version into account for `-SaveDscDependency` switch (#1094) (by @bergmeister)
+
+### Performance
+
+Multi-threading efficiency was highly improved leading to a speedup whilst keeping the CPU usage roughly the same. One can expect `PSScriptAnalyzer` (PSSA) 1.18.0 to be more than twice as fast in most situations (including 'cold' runs) compared to its predecessor 1.17.0.
+
+- Increase lock granularity for CommandInfo cache #1166 (by @bergmeister and @rjmholt)
+- Restore caching in Helper.GetCommandInfo (#1074) (Thanks @SeeminglyScience!)
+
+### Fixes and General Improvements
+
+- Fix bug when culture was set to Turkish (#1095) (by @bergmeister)
+- Fix settings file array parsing when no commas are present (#1161) (by @rjmholt)
+- Ensure correct disposal with using statement (#1164) (by @bergmeister)
+- Fix bug that caused Invoke-ScriptAnalyzer to not run any rule after an execution of Invoke-Formatter in the same session (but Invoke-ScriptAnalyzer would've recovered when being called again) (#1121) (by @bergmeister)
+- Fix parsing of empty hashtable when string is provided as settings object (#1073) (by @bergmeister)
+- Fix AlignAssignment rule to calculate alignment position correctly and avoid crash (#1070) (by @bergmeister)
+- Don't crash on CIM classes with no superclass (#1046) (Thanks @edyoung!)
+- Trigger AvoidPositionalParameters rule for function defined and called inside a script. (#963 and #1175) (Thanks @kalgiz! and @bergmeister)
+- Add OutputType attributes to cmdlets to enhance tab completion (#1020) (by @bergmeister)
+- Allow paths to be pipelined to Invoke-ScriptAnalyzer (#1040) (Thanks @edyoung!)
+- PSGallery will no longer use PSAvoidUsingConvertToSecureStringWithPlainText and PSAvoidUsingUserNameAndPasswordParams rules (#1037) (Thanks @edyoung!)
+
+### Build
+
+- Update platyps to 0.13 (#1172) (by @bergmeister)
+- Raise minimum required PS version of PS 6 to `6.1.0` due to 6.0 running out of support now and update Newtonsoft.Json to `11.0.2` (#1165) (by @bergmeister)
+- Unify reference to `Microsoft.Management.Infrastructure` and update `System.Reflection.TypeExtensions` NuGet package (#1105) (by @bergmeister)
+- Update .Net Core SDK from 2.2.103 to `2.2.104` (latest patch) (#1158) (by @bergmeister)
+- Make it easier to install the dotnet CLI tools (#1139) (by @JamesWTruher)
+- Simplify build scripts even more and upgrade platyPS in Appveyor #1088 (by @bergmeister)
+- Upgrade .Net SDK to 2.2.102 to fix new test failures on AppVeyor's Ubuntu image due an image update (#1128) (by @bergmeister)
+- Mark setting files as content for easier out-of-the-box debugging (#1104) (by @bergmeister)
+- Upgrade from net451 to net452 since net451 is not supported any more and net452 is an in-place upgrade anyway (#1108) (by @bergmeister)
+- Install dotnet sdk if missing on Unix as well to fix failing Ubuntu build due to image update and Pester/PowerShell bug (#1107) (by @bergmeister)
+- Removes update of pwsh since appveyor images are updated (#1084) (Thanks @wilmardo!)
+- Update, simplify, and consolidate build scripts (#1082) (by @JamesWTruher)
+- Bump .Net Core SDK version to 2.1.401 (#1086) (Thanks @wilmardo!)
+- Use RTM version of `Microsoft.Management.Infrastructure` (#1059) (by @bergmeister)
+- Upgrade `Microsoft.PowerShell.5.ReferenceAssemblies` from 1.0.0 to `1.1.0` and remove redundant/transitive references (#1050) (by @bergmeister)
+- Remove RuntimeFrameworkVersion as this is given by the running version of PS anyway and .Net would upgrade automatically anyway if possible (#1052) (by @bergmeister)
+- Upgrade Nuget packages (`System.Reflection.TypeExtensions` and `Microsoft.CSharp`) and make them more consistent (#1051) (by @bergmeister)
+- give explicit error on unsupported versions of pscore and document it (#1049) (by @bergmeister)
+- Remove old and redundant test settings file core-6.0.0-alpha-windows.json (#1044) (by @bergmeister)
+- Use `TLS 1.2` for bootstrapping dotnet in CI (#1047) (by @bergmeister)
+- Remove redundant/outdated build scripts and cleanup (#1011) (by @bergmeister)
+- Upload only out folder as artifact, which is the actual PSSA artifact (#1009) (by @bergmeister)
+
+### Documentation
+
+- Fix the "How" section #1127 (Thanks @alexandair!)
+- Make the correct example use the declared variable (#1111) (Thanks @f0nt4!)
+- Correcting CommunityRules to `CommunityAnalyzerRules` (#1119) (Thanks @kvprasoon!)
+- Add summary comment to some rules with short description (#1087) (Thanks @pedrocodacy!)
+- Update PR template to be more similar to the one of PowerShell but still distinguish where necessary (#1077)
+- Update documentation of `PSUseConsistentWhiteSpace`: enhance example and correct argument type. #1069 (Thanks @TheIncorrigible1!)
+- Update AvoidNullOrEmptyHelpMessageAttribute.md fix typo (#1068) (Thanks @TheIncorrigible1!)
+
+## [1.17.1](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.17.1) - 2018-06-06
 
 ### Fixes
 

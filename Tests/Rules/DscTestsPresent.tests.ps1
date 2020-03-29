@@ -1,4 +1,4 @@
-Add-Dependency {
+BeforeAll {
     $currentPath = $PSScriptRoot
     $ruleName = "PSDSCDscTestsPresent"
 }
@@ -7,7 +7,7 @@ if ($PSVersionTable.PSVersion -ge [Version]'5.0.0') {
 
 Describe "DscTestsPresent rule in class based resource" {
 
-    Add-FreeFloatingCode -ScriptBlock {
+    BeforeAll {
         $testsPath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\Tests"
         $classResourcePath = "$currentPath\DSCResourceModule\DSCResources\MyDscResource\MyDscResource.psm1"
     }
@@ -28,8 +28,8 @@ Describe "DscTestsPresent rule in class based resource" {
 
     Context "When tests present" {
         BeforeAll {
-            New-Item -Path $testsPath -ItemType Directory
-            New-Item -Path "$testsPath\FileResource_Test.psm1" -ItemType File
+            New-Item -Path $testsPath -ItemType Directory -force
+            New-Item -Path "$testsPath\FileResource_Test.psm1" -ItemType File -force
 
             $noViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $classResourcePath | Where-Object {$_.RuleName -eq $ruleName}
         }
@@ -47,7 +47,7 @@ Describe "DscTestsPresent rule in class based resource" {
 
 Describe "DscTestsPresent rule in regular (non-class) based resource" {
 
-    Add-FreeFloatingCode -ScriptBlock {
+    BeforeAll {
         $testsPath = "$currentPath\DSCResourceModule\Tests"
         $resourcePath = "$currentPath\DSCResourceModule\DSCResources\MSFT_WaitForAll\MSFT_WaitForAll.psm1"
     }
@@ -69,8 +69,8 @@ Describe "DscTestsPresent rule in regular (non-class) based resource" {
 
     Context "When tests present" {
         BeforeAll {
-            New-Item -Path $testsPath -ItemType Directory
-            New-Item -Path "$testsPath\MSFT_WaitForAll_Test.psm1" -ItemType File
+            New-Item -Path $testsPath -ItemType Directory -force
+            New-Item -Path "$testsPath\MSFT_WaitForAll_Test.psm1" -ItemType File -force
 
             $noViolations = Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue $resourcePath | Where-Object {$_.RuleName -eq $ruleName}
         }
